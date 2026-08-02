@@ -226,4 +226,5 @@ To set up the MySQL database on your local machine:
    SELECT * FROM products;
    ```
 #   F r a m e W a l a . o n l i n e  
+ #   F r a m e W a l a . o n l i n e  
  
