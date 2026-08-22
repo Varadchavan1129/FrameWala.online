@@ -41,6 +41,44 @@ class Review {
     );
     return rows.length > 0;
   }
+
+  /**
+   * Find a specific review by ID
+   */
+  static async findById(reviewId) {
+    const [rows] = await db.query('SELECT * FROM reviews WHERE review_id = ?', [reviewId]);
+    return rows[0] || null;
+  }
+
+  /**
+   * Update a review rating and text comments
+   */
+  static async update(reviewId, userId, { rating, review }) {
+    const [result] = await db.query(
+      'UPDATE reviews SET rating = ?, review = ? WHERE review_id = ? AND user_id = ?',
+      [rating, review || null, reviewId, userId]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * Delete a review (checks that the user is the author)
+   */
+  static async delete(reviewId, userId) {
+    const [result] = await db.query(
+      'DELETE FROM reviews WHERE review_id = ? AND user_id = ?',
+      [reviewId, userId]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
+   * Delete a review by an Admin moderator
+   */
+  static async deleteByAdmin(reviewId) {
+    const [result] = await db.query('DELETE FROM reviews WHERE review_id = ?', [reviewId]);
+    return result.affectedRows > 0;
+  }
 }
 
 export default Review;

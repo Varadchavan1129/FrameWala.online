@@ -61,9 +61,19 @@ export const placeOrder = async (req, res, next) => {
       totalAmount += itemTotal;
 
       itemsToInsert.push({
+        cart_item_id: item.cart_item_id,
         product_id: item.product_id,
         quantity: item.quantity,
-        price: product.price
+        price: product.price,
+        custom_image_url: item.custom_image_url,
+        custom_text: item.custom_text,
+        custom_font: item.custom_font,
+        custom_font_size: item.custom_font_size,
+        custom_font_color: item.custom_font_color,
+        custom_rotation: item.custom_rotation,
+        custom_scale: item.custom_scale,
+        custom_position_x: item.custom_position_x,
+        custom_position_y: item.custom_position_y
       });
     }
 
@@ -78,9 +88,26 @@ export const placeOrder = async (req, res, next) => {
     // 5. Create order items and adjust stock quantities
     for (const item of itemsToInsert) {
       // Insert item
+      const [orderItemResult] = await connection.query(
+        `INSERT INTO order_items (
+          order_id, product_id, quantity, price,
+          custom_image_url, custom_text, custom_font, custom_font_size, custom_font_color,
+          custom_rotation, custom_scale, custom_position_x, custom_position_y
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderId, item.product_id, item.quantity, item.price,
+          item.custom_image_url, item.custom_text, item.custom_font, item.custom_font_size, item.custom_font_color,
+          item.custom_rotation, item.custom_scale, item.custom_position_x, item.custom_position_y
+        ]
+      );
+      const orderItemId = orderItemResult.insertId;
+
+      // Move customization from cart to order
       await connection.query(
-        'INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)',
-        [orderId, item.product_id, item.quantity, item.price]
+        `UPDATE product_customizations 
+         SET order_item_id = ?, cart_item_id = NULL 
+         WHERE cart_item_id = ?`,
+        [orderItemId, item.cart_item_id]
       );
 
       // Deduct stock

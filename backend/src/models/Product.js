@@ -7,7 +7,7 @@ class Product {
   /**
    * Find products with filter criteria (category, price limits, customizability, and searching)
    */
-  static async findAll({ categoryId, minPrice, maxPrice, search, isCustomizable } = {}) {
+  static async findAll({ categoryId, minPrice, maxPrice, search, isCustomizable, isActive } = {}) {
     let sql = `
       SELECT p.*, c.category_name, pi.image_url AS primary_image 
       FROM products p
@@ -16,6 +16,11 @@ class Product {
       WHERE 1=1
     `;
     const params = [];
+
+    if (isActive !== undefined && isActive !== '') {
+      sql += ' AND p.is_active = ?';
+      params.push(isActive === 'true' || isActive === true || isActive === 1 ? 1 : 0);
+    }
 
     if (categoryId) {
       sql += ' AND p.category_id = ?';
@@ -87,11 +92,11 @@ class Product {
   /**
    * Insert a new product
    */
-  static async create({ category_id, product_name, description, price, stock_quantity, is_customizable }) {
+  static async create({ category_id, product_name, description, price, stock_quantity, is_customizable, is_active = true, template_image = null, print_area_json = null }) {
     const [result] = await db.query(
-      `INSERT INTO products (category_id, product_name, description, price, stock_quantity, is_customizable) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [category_id || null, product_name, description || null, price, stock_quantity || 0, is_customizable ? 1 : 0]
+      `INSERT INTO products (category_id, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [category_id || null, product_name, description || null, price, stock_quantity || 0, is_customizable ? 1 : 0, is_active ? 1 : 0, template_image, print_area_json]
     );
     return result.insertId;
   }
@@ -99,12 +104,23 @@ class Product {
   /**
    * Update an existing product
    */
-  static async update(id, { category_id, product_name, description, price, stock_quantity, is_customizable }) {
+  static async update(id, { category_id, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json }) {
     const [result] = await db.query(
       `UPDATE products 
-       SET category_id = ?, product_name = ?, description = ?, price = ?, stock_quantity = ?, is_customizable = ? 
+       SET category_id = ?, product_name = ?, description = ?, price = ?, stock_quantity = ?, is_customizable = ?, is_active = ?, template_image = ?, print_area_json = ? 
        WHERE product_id = ?`,
-      [category_id || null, product_name, description || null, price, stock_quantity || 0, is_customizable ? 1 : 0, id]
+      [
+        category_id || null, 
+        product_name, 
+        description || null, 
+        price, 
+        stock_quantity || 0, 
+        is_customizable ? 1 : 0, 
+        is_active !== undefined ? (is_active ? 1 : 0) : 1,
+        template_image !== undefined ? template_image : null,
+        print_area_json !== undefined ? print_area_json : null,
+        id
+      ]
     );
     return result.affectedRows > 0;
   }
@@ -141,6 +157,17 @@ class Product {
    */
   static async clearImages(productId) {
     await db.query('DELETE FROM product_images WHERE product_id = ?', [productId]);
+  }
+
+  /**
+   * Find product by name and category (useful for duplicate prevention)
+   */
+  static async findByNameAndCategory(productName, categoryId) {
+    const [rows] = await db.query(
+      'SELECT * FROM products WHERE product_name = ? AND category_id = ?',
+      [productName, categoryId]
+    );
+    return rows[0] || null;
   }
 }
 

@@ -5,19 +5,19 @@ USE framewala_db;
 
 -- Clear any existing data in correct dependency order
 SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE reviews;
-TRUNCATE TABLE shipments;
-TRUNCATE TABLE payments;
-TRUNCATE TABLE order_items;
-TRUNCATE TABLE orders;
-TRUNCATE TABLE wishlist;
-TRUNCATE TABLE cart_items;
-TRUNCATE TABLE cart;
-TRUNCATE TABLE addresses;
-TRUNCATE TABLE product_images;
-TRUNCATE TABLE products;
-TRUNCATE TABLE categories;
-TRUNCATE TABLE users;
+DELETE FROM reviews;
+DELETE FROM shipments;
+DELETE FROM payments;
+DELETE FROM order_items;
+DELETE FROM orders;
+DELETE FROM wishlist;
+DELETE FROM cart_items;
+DELETE FROM cart;
+DELETE FROM addresses;
+DELETE FROM product_images;
+DELETE FROM products;
+DELETE FROM categories;
+DELETE FROM users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1. Insert Users (Passwords are plain text for sample illustration; in real app, these are hashed like bcrypt)

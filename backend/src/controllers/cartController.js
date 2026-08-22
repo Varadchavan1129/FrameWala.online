@@ -32,7 +32,22 @@ export const getCart = async (req, res, next) => {
  */
 export const addToCart = async (req, res, next) => {
   try {
-    const { product_id, quantity = 1 } = req.body;
+    const { 
+      product_id, 
+      quantity = 1,
+      custom_image_url,
+      custom_text,
+      custom_font,
+      custom_font_size,
+      custom_font_color,
+      custom_rotation,
+      custom_scale,
+      custom_position_x,
+      custom_position_y,
+      design_json,
+      preview_image,
+      template_name
+    } = req.body;
     const userId = req.user.user_id;
 
     if (!product_id) {
@@ -55,7 +70,20 @@ export const addToCart = async (req, res, next) => {
     }
 
     // 3. Add or update in cart
-    const cartItemId = await Cart.addItem(userId, product_id, quantity);
+    const cartItemId = await Cart.addItem(userId, product_id, quantity, {
+      custom_image_url,
+      custom_text,
+      custom_font,
+      custom_font_size,
+      custom_font_color,
+      custom_rotation,
+      custom_scale,
+      custom_position_x,
+      custom_position_y,
+      design_json,
+      preview_image,
+      template_name
+    });
     
     // Fetch refreshed cart
     const items = await Cart.getCartItems(userId);

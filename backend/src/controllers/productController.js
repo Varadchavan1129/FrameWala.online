@@ -11,14 +11,15 @@ import { sendSuccess, sendError } from '../utils/responseHelper.js';
  */
 export const getProducts = async (req, res, next) => {
   try {
-    const { categoryId, minPrice, maxPrice, search, isCustomizable } = req.query;
+    const { categoryId, minPrice, maxPrice, search, isCustomizable, isActive } = req.query;
     
     const products = await Product.findAll({
       categoryId,
       minPrice,
       maxPrice,
       search,
-      isCustomizable
+      isCustomizable,
+      isActive
     });
 
     res.status(200).json(sendSuccess('Products retrieved successfully.', { products }));
@@ -47,7 +48,7 @@ export const getProductById = async (req, res, next) => {
  */
 export const createProduct = async (req, res, next) => {
   try {
-    const { category_id, product_name, description, price, stock_quantity, is_customizable, images } = req.body;
+    const { category_id, product_name, description, price, stock_quantity, is_customizable, is_active, images, template_image, print_area_json } = req.body;
 
     if (!product_name || !price) {
       return res.status(400).json(sendError('Product name and price are required.'));
@@ -61,13 +62,22 @@ export const createProduct = async (req, res, next) => {
       }
     }
 
+    // Verify naming uniqueness in the same category
+    const duplicate = await Product.findByNameAndCategory(product_name, category_id);
+    if (duplicate) {
+      return res.status(400).json(sendError('Product with this name already exists in this category.'));
+    }
+
     const newProductId = await Product.create({
       category_id,
       product_name,
       description,
       price,
       stock_quantity,
-      is_customizable
+      is_customizable,
+      is_active: is_active !== undefined ? is_active : true,
+      template_image: template_image || null,
+      print_area_json: print_area_json || null
     });
 
     // Handle primary and optional images if supplied in request body
@@ -91,7 +101,7 @@ export const createProduct = async (req, res, next) => {
 export const updateProduct = async (req, res, next) => {
   try {
     const productId = req.params.id;
-    const { category_id, product_name, description, price, stock_quantity, is_customizable } = req.body;
+    const { category_id, product_name, description, price, stock_quantity, is_customizable, is_active, images, template_image, print_area_json } = req.body;
 
     const existing = await Product.findById(productId);
     if (!existing) {
@@ -106,17 +116,33 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
+    // Verify naming uniqueness in the same category
+    if (product_name || category_id !== undefined) {
+      const nameToCheck = product_name || existing.product_name;
+      const catIdToCheck = category_id !== undefined ? category_id : existing.category_id;
+      const duplicate = await Product.findByNameAndCategory(nameToCheck, catIdToCheck);
+      if (duplicate && duplicate.product_id !== parseInt(productId)) {
+        return res.status(400).json(sendError('Product with this name already exists in this category.'));
+      }
+    }
+
     const updated = await Product.update(productId, {
       category_id: category_id !== undefined ? category_id : existing.category_id,
       product_name: product_name || existing.product_name,
       description: description !== undefined ? description : existing.description,
       price: price !== undefined ? price : existing.price,
       stock_quantity: stock_quantity !== undefined ? stock_quantity : existing.stock_quantity,
-      is_customizable: is_customizable !== undefined ? is_customizable : existing.is_customizable
+      is_customizable: is_customizable !== undefined ? is_customizable : existing.is_customizable,
+      is_active: is_active !== undefined ? is_active : existing.is_active,
+      template_image: template_image !== undefined ? template_image : existing.template_image,
+      print_area_json: print_area_json !== undefined ? print_area_json : existing.print_area_json
     });
 
-    if (!updated) {
-      return res.status(500).json(sendError('Failed to update product details or no changes made.'));
+    if (images && Array.isArray(images)) {
+      await Product.clearImages(productId);
+      for (let i = 0; i < images.length; i++) {
+        await Product.addImage(productId, images[i], i + 1, i === 0);
+      }
     }
 
     const product = await Product.findById(productId);

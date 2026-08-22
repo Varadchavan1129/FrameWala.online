@@ -70,3 +70,80 @@ export const getProductReviews = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * PUT /api/reviews/:reviewId
+ * Edits a rating and review comments
+ */
+export const updateReview = async (req, res, next) => {
+  try {
+    const reviewId = req.params.reviewId;
+    const userId = req.user.user_id;
+    const { rating, review } = req.body;
+
+    if (rating === undefined) {
+      return res.status(400).json(sendError('Rating is required.'));
+    }
+
+    const ratingVal = parseInt(rating);
+    if (isNaN(ratingVal) || ratingVal < 1 || ratingVal > 5) {
+      return res.status(400).json(sendError('Rating must be an integer between 1 and 5.'));
+    }
+
+    const existing = await Review.findById(reviewId);
+    if (!existing) {
+      return res.status(404).json(sendError('Review not found.'));
+    }
+
+    if (existing.user_id !== userId) {
+      return res.status(403).json(sendError('Unauthorized to update this review.'));
+    }
+
+    const updated = await Review.update(reviewId, userId, { rating: ratingVal, review });
+    if (!updated) {
+      return res.status(500).json(sendError('Failed to update review or details unchanged.'));
+    }
+
+    const productReviews = await Review.findByProductId(existing.product_id);
+    res.status(200).json(sendSuccess('Review updated successfully.', { reviews: productReviews }));
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * DELETE /api/reviews/:reviewId
+ * Removes a rating review (author or admin only)
+ */
+export const deleteReview = async (req, res, next) => {
+  try {
+    const reviewId = req.params.reviewId;
+    const userId = req.user.user_id;
+    const isUserAdmin = req.user.role === 'admin';
+
+    const existing = await Review.findById(reviewId);
+    if (!existing) {
+      return res.status(404).json(sendError('Review not found.'));
+    }
+
+    if (existing.user_id !== userId && !isUserAdmin) {
+      return res.status(403).json(sendError('Unauthorized to delete this review.'));
+    }
+
+    let deleted = false;
+    if (isUserAdmin) {
+      deleted = await Review.deleteByAdmin(reviewId);
+    } else {
+      deleted = await Review.delete(reviewId, userId);
+    }
+
+    if (!deleted) {
+      return res.status(500).json(sendError('Failed to delete review.'));
+    }
+
+    const productReviews = await Review.findByProductId(existing.product_id);
+    res.status(200).json(sendSuccess('Review deleted successfully.', { reviews: productReviews }));
+  } catch (error) {
+    next(error);
+  }
+};

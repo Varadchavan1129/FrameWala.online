@@ -21,7 +21,7 @@ export const authenticateToken = (req, res, next) => {
 
   jwt.verify(token, process.env.JWT_SECRET || 'framewala_jwt_super_secret_key_123!', (err, user) => {
     if (err) {
-      return res.status(403).json(sendError('Invalid or expired token.', { details: err.message }));
+      return res.status(401).json(sendError('Invalid or expired token.', { details: err.message }));
     }
     
     // Attach user payload (user_id, email, role) to the request object

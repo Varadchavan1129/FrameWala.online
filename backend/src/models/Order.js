@@ -19,11 +19,29 @@ class Order {
   /**
    * Insert an order item log
    */
-  static async createItem({ order_id, product_id, quantity, price }) {
+  static async createItem({ 
+    order_id, product_id, quantity, price,
+    custom_image_url = null,
+    custom_text = null,
+    custom_font = null,
+    custom_font_size = null,
+    custom_font_color = null,
+    custom_rotation = null,
+    custom_scale = null,
+    custom_position_x = null,
+    custom_position_y = null
+  }) {
     const [result] = await db.query(
-      `INSERT INTO order_items (order_id, product_id, quantity, price) 
-       VALUES (?, ?, ?, ?)`,
-      [order_id, product_id, quantity, price]
+      `INSERT INTO order_items (
+        order_id, product_id, quantity, price,
+        custom_image_url, custom_text, custom_font, custom_font_size, custom_font_color,
+        custom_rotation, custom_scale, custom_position_x, custom_position_y
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        order_id, product_id, quantity, price,
+        custom_image_url, custom_text, custom_font, custom_font_size, custom_font_color,
+        custom_rotation, custom_scale, custom_position_x, custom_position_y
+      ]
     );
     return result.insertId;
   }
@@ -72,10 +90,12 @@ class Order {
 
     // 2. Fetch order items
     const [items] = await db.query(
-      `SELECT oi.*, p.product_name, pi.image_url AS primary_image
+      `SELECT oi.*, p.product_name, pi.image_url AS primary_image,
+              pc.id AS customization_id, pc.template_name, pc.design_json, pc.preview_image
        FROM order_items oi
        JOIN products p ON oi.product_id = p.product_id
        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.is_primary = TRUE
+       LEFT JOIN product_customizations pc ON oi.order_item_id = pc.order_item_id
        WHERE oi.order_id = ?`,
       [orderId]
     );
