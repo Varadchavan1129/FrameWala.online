@@ -3,29 +3,39 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white;
+    @apply bg-cream-100 text-warmDark-800 font-sans antialiased selection:bg-terracotta-500 selection:text-white;
   }
 }
 
-/* Glassmorphism Classes */
-.glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-.glass-dark {
-  background: rgba(15, 23, 42, 0.75);
+/* Custom Glassmorphism for Warm Theme */
+.glass-warm {
+  background: rgba(250, 246, 240, 0.88);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Custom Animations & Transitions */
-.hover-scale {
-  @apply transition-all duration-300 hover:scale-[1.02] active:scale-[0.98];
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(235, 221, 203, 0.8);
 }
 
-.glow-amber {
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+/* Custom animations */
+.hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1.5 hover:shadow-warm-lg;
 }
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
