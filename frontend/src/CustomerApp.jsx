@@ -1,5 +1,5 @@
 // CustomerApp.jsx
-// Entry root for Customer Portal containing storefront contexts and notifications
+// Root of the FrameWala storefront with providers and toaster.
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -15,36 +15,23 @@ function CustomerApp() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            
             <AppRoutes />
-            
-            <Toaster 
+            <Toaster
               position="bottom-right"
               toastOptions={{
-                duration: 4000,
+                duration: 3500,
                 style: {
-                  background: '#0f172a',
-                  color: '#fff',
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  borderRadius: '12px',
+                  background: '#2A1E17',
+                  color: '#FAF6F0',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  borderRadius: '14px',
                   padding: '12px 18px',
                 },
-                success: {
-                  iconTheme: {
-                    primary: '#10b981',
-                    secondary: '#fff',
-                  },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#ef4444',
-                    secondary: '#fff',
-                  },
-                },
+                success: { iconTheme: { primary: '#1F6B40', secondary: '#fff' } },
+                error: { iconTheme: { primary: '#B86D43', secondary: '#fff' } },
               }}
             />
-            
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

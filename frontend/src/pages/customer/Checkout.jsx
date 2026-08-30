@@ -1,394 +1,169 @@
-// Checkout.jsx
-// Order checkout billing and shipping selections page
+// Checkout.jsx — shipping form, order review, coupon, payment UI, order summary.
 
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { CartContext } from '../../context/CartContext.jsx';
-import { getAddresses, addAddress } from '../../services/authService.js';
-import { placeOrder } from '../../services/orderService.js';
-import Button from '../../components/common/Button.jsx';
-import Loader from '../../components/common/Loader.jsx';
-import { FiMapPin, FiCreditCard, FiDollarSign, FiPlus, FiChevronRight } from 'react-icons/fi';
+import { formatINR } from '../../data/mockData.js';
 import toast from 'react-hot-toast';
+import {
+  FiShoppingCart, FiMapPin, FiChevronRight, FiCheckCircle, FiShield,
+  FiRefreshCw, FiAward, FiTruck, FiTag,
+} from 'react-icons/fi';
+
+const COUPONS = { FRAMEWALA10: 0.1, FRAMEWALA15: 0.15 };
+const PAYMENTS = [
+  { id: 'upi', label: 'UPI / QR Code', tag: 'UPI' },
+  { id: 'card', label: 'Credit / Debit Card', tag: 'VISA · MC' },
+  { id: 'netbanking', label: 'Net Banking', tag: 'Banks' },
+  { id: 'wallet', label: 'Wallets (PhonePe / Paytm)', tag: 'Wallets' },
+  { id: 'cod', label: 'Cash on Delivery', tag: 'COD' },
+];
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotalAmount, clearCart } = useContext(CartContext);
 
-  const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('COD');
-  const [loading, setLoading] = useState(true);
-  const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [form, setForm] = useState({ name: '', mobile: '', email: '', address: '', city: '', state: '', pincode: '' });
+  const [payment, setPayment] = useState('cod');
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState(null);
+  const [placed, setPlaced] = useState(false);
 
-  // Address Form State
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [addressLine, setAddressLine] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [addingAddr, setAddingAddr] = useState(false);
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      toast.error('Your cart is empty. Cannot checkout.');
-      navigate('/cart');
-      return;
-    }
-    loadAddresses();
-  }, [cartItems]);
+  const delivery = cartTotalAmount >= 999 ? 0 : 60;
+  const discount = coupon ? Math.round(cartTotalAmount * COUPONS[coupon]) : 0;
+  const total = cartTotalAmount + delivery - discount;
 
-  const loadAddresses = async () => {
-    try {
-      setLoading(true);
-      const res = await getAddresses();
-      if (res.success) {
-        setAddresses(res.data.addresses);
-        if (res.data.addresses.length > 0) {
-          setSelectedAddressId(res.data.addresses[0].address_id.toString());
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load addresses:', error.message);
-    } finally {
-      setLoading(false);
-    }
+  const applyCoupon = () => {
+    const code = couponInput.trim().toUpperCase();
+    if (COUPONS[code]) { setCoupon(code); toast.success(`Coupon ${code} applied!`); }
+    else { setCoupon(null); toast.error('Invalid coupon code.'); }
   };
 
-  const handleAddAddressSubmit = async (e) => {
-    e.preventDefault();
-    if (!fullName || !phone || !addressLine || !city || !state || !pincode) {
-      toast.error('Please fill in all address fields.');
-      return;
-    }
-
-    try {
-      setAddingAddr(true);
-      const res = await addAddress({
-        full_name: fullName,
-        phone,
-        address_line: addressLine,
-        city,
-        state,
-        pincode
-      });
-
-      if (res.success) {
-        toast.success('Address added successfully.');
-        setAddresses(res.data.addresses);
-        setSelectedAddressId(res.data.address_id.toString());
-        
-        // Reset Form
-        setFullName('');
-        setPhone('');
-        setAddressLine('');
-        setCity('');
-        setState('');
-        setPincode('');
-        setShowAddressForm(false);
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add address.');
-    } finally {
-      setAddingAddr(false);
-    }
+  const placeOrder = () => {
+    const required = ['name', 'mobile', 'address', 'city', 'state', 'pincode'];
+    if (required.some((k) => !form[k].trim())) { toast.error('Please fill all delivery details.'); return; }
+    clearCart();
+    setPlaced(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handlePlaceOrder = async () => {
-    if (!selectedAddressId) {
-      toast.error('Please choose or enter a shipping address.');
-      return;
-    }
+  if (placed) {
+    return (
+      <div className="max-w-lg mx-auto text-center py-20 px-4 space-y-6">
+        <div className="w-20 h-20 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto"><FiCheckCircle className="w-11 h-11" /></div>
+        <h1 className="text-3xl font-extrabold text-warmDark-900">Order Placed!</h1>
+        <p className="text-warmDark-500 text-sm">Thank you, {form.name || 'friend'}. Your FrameWala order has been placed successfully. Estimated delivery in 3–5 business days.</p>
+        <Link to="/products" className="inline-block px-8 py-3.5 bg-brand-600 text-cream-50 rounded-full font-bold text-sm" data-testid="order-continue">Continue Shopping</Link>
+      </div>
+    );
+  }
 
-    try {
-      setSubmittingOrder(true);
-      const res = await placeOrder({
-        address_id: selectedAddressId,
-        payment_method: paymentMethod
-      });
+  if (cartItems.length === 0) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20 px-4 space-y-5">
+        <h2 className="text-2xl font-extrabold text-warmDark-900">Your cart is empty</h2>
+        <Link to="/products" className="inline-block px-8 py-3.5 bg-brand-600 text-cream-50 rounded-full font-bold text-sm">Shop Frames</Link>
+      </div>
+    );
+  }
 
-      if (res.success) {
-        toast.success('Order placed successfully!');
-        clearCart();
-        navigate('/orders');
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Transaction checkout failed.');
-    } finally {
-      setSubmittingOrder(false);
-    }
-  };
-
-  if (loading) return <Loader />;
+  const input = 'w-full px-4 py-2.5 border border-warmDark-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 bg-white';
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Checkout</h1>
-        <p className="text-slate-400 text-sm mt-1">Specify dispatch addresses and complete your order.</p>
-      </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <nav className="flex items-center gap-2 text-xs font-semibold text-warmDark-400">
+        <Link to="/" className="hover:text-brand-600">Home</Link><FiChevronRight className="w-3 h-3" />
+        <Link to="/cart" className="hover:text-brand-600">Cart</Link><FiChevronRight className="w-3 h-3" />
+        <span className="text-warmDark-800">Checkout</span>
+      </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Side: Addresses & Payments */}
+      <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          
-          {/* Address Panel */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h2 className="font-extrabold text-slate-800 text-sm flex items-center space-x-2">
-                <FiMapPin className="w-5 h-5 text-indigo-500" />
-                <span>Shipping Address</span>
-              </h2>
-              <button
-                onClick={() => setShowAddressForm(!showAddressForm)}
-                className="text-xs text-indigo-600 hover:text-indigo-700 font-bold flex items-center space-x-1"
-              >
-                <FiPlus className="w-3.5 h-3.5" />
-                <span>Add Address</span>
-              </button>
-            </div>
-
-            {/* Address Selection Radio Cards */}
-            {addresses.length === 0 ? (
-              <p className="text-slate-400 text-xs py-4 text-center">No addresses found. Add an address to continue.</p>
-            ) : (
-              <div className="space-y-3.5">
-                {addresses.map((addr) => (
-                  <label 
-                    key={addr.address_id}
-                    className={`flex items-start border p-4 rounded-2xl cursor-pointer transition-all duration-200 ${
-                      selectedAddressId === addr.address_id.toString()
-                        ? 'border-indigo-600 bg-indigo-50/20'
-                        : 'border-slate-100 hover:border-slate-200'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="selected_address"
-                      value={addr.address_id}
-                      checked={selectedAddressId === addr.address_id.toString()}
-                      onChange={(e) => setSelectedAddressId(e.target.value)}
-                      className="mt-1 text-indigo-600 focus:ring-indigo-500 shrink-0"
-                    />
-                    <div className="ml-3 text-xs font-semibold space-y-1">
-                      <span className="font-extrabold text-slate-800 text-sm block">{addr.full_name}</span>
-                      <span className="text-slate-500 block">{addr.address_line}, {addr.city}, {addr.state} - {addr.pincode}</span>
-                      <span className="text-slate-400 block">Phone: {addr.phone}</span>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Add Address Form Accordion */}
-            {showAddressForm && (
-              <form onSubmit={handleAddAddressSubmit} className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-4 pt-4">
-                <h3 className="font-extrabold text-slate-800 text-xs uppercase tracking-wide">New Shipping Address</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Receiver Name</label>
-                    <input
-                      type="text"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Varad Chavan"
-                      className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</label>
-                    <input
-                      type="text"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 9876543210"
-                      className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Street Address</label>
-                  <input
-                    type="text"
-                    value={addressLine}
-                    onChange={(e) => setAddressLine(e.target.value)}
-                    placeholder="e.g. Flat No. 201, Sunshine Heights"
-                    className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">City</label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="Mumbai"
-                      className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">State</label>
-                    <input
-                      type="text"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      placeholder="Maharashtra"
-                      className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Pincode</label>
-                    <input
-                      type="text"
-                      value={pincode}
-                      onChange={(e) => setPincode(e.target.value)}
-                      placeholder="400001"
-                      className="w-full px-3 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500 bg-white"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-3 pt-2">
-                  <Button
-                    onClick={() => setShowAddressForm(false)}
-                    variant="secondary"
-                    size="small"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    loading={addingAddr}
-                    size="small"
-                  >
-                    Save Address
-                  </Button>
-                </div>
-
-              </form>
-            )}
-          </div>
-
-          {/* Payment Method Panel */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl space-y-4">
-            <h2 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center space-x-2">
-              <FiCreditCard className="w-5 h-5 text-indigo-500" />
-              <span>Payment Option</span>
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              
-              {/* Cash On Delivery */}
-              <label 
-                className={`flex items-center p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${
-                  paymentMethod === 'COD'
-                    ? 'border-indigo-600 bg-indigo-50/20'
-                    : 'border-slate-100 hover:border-slate-200'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment_method"
-                  value="COD"
-                  checked={paymentMethod === 'COD'}
-                  onChange={() => setPaymentMethod('COD')}
-                  className="text-indigo-600 focus:ring-indigo-500"
-                />
-                <div className="ml-3 flex items-center space-x-2">
-                  <FiDollarSign className="w-5 h-5 text-slate-600" />
-                  <div className="text-xs font-semibold">
-                    <span className="font-extrabold text-slate-800 text-sm block">Cash on Delivery</span>
-                    <span className="text-slate-400 block text-[10px]">Pay when items are delivered</span>
-                  </div>
-                </div>
-              </label>
-
-              {/* Online payment (Mocked) */}
-              <label 
-                className={`flex items-center p-4 border rounded-2xl cursor-pointer transition-all duration-200 ${
-                  paymentMethod === 'Card'
-                    ? 'border-indigo-600 bg-indigo-50/20'
-                    : 'border-slate-100 hover:border-slate-200'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="payment_method"
-                  value="Card"
-                  checked={paymentMethod === 'Card'}
-                  onChange={() => setPaymentMethod('Card')}
-                  className="text-indigo-600 focus:ring-indigo-500"
-                />
-                <div className="ml-3 flex items-center space-x-2">
-                  <FiCreditCard className="w-5 h-5 text-slate-600" />
-                  <div className="text-xs font-semibold">
-                    <span className="font-extrabold text-slate-800 text-sm block">Online UPI/Card</span>
-                    <span className="text-amber-600 block text-[10px] font-bold">Mock Payment Mode</span>
-                  </div>
-                </div>
-              </label>
-
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Side: Invoice Subtotal Summary */}
-        <div className="lg:col-span-1 bg-white border border-slate-100 p-6 rounded-3xl h-fit space-y-6 shadow-xs">
-          <h3 className="font-extrabold text-slate-800 text-base border-b border-slate-100 pb-3">Billing Info</h3>
-
-          <div className="space-y-4">
-            {/* List items mini preview */}
-            <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+          {/* Review order */}
+          <div className="bg-white border border-warmDark-100/60 rounded-3xl p-6 space-y-4">
+            <h2 className="font-extrabold text-warmDark-900 flex items-center gap-2"><FiShoppingCart className="w-5 h-5 text-brand-600" /> Review Your Order</h2>
+            <div className="space-y-3">
               {cartItems.map((item) => (
-                <div key={item.cart_item_id} className="flex justify-between text-xs font-semibold text-slate-500">
-                  <span className="truncate max-w-[150px]">{item.product_name} <span className="text-[10px] font-black text-indigo-500">x{item.quantity}</span></span>
-                  <span className="text-slate-800">₹{(item.price * item.quantity).toFixed(2)}</span>
+                <div key={item.lineId} className="flex items-center gap-4 border border-cream-200 rounded-2xl p-3">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-cream-200 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>
+                  <div className="flex-grow min-w-0">
+                    <p className="font-bold text-warmDark-900 text-sm line-clamp-1">{item.name}</p>
+                    <p className="text-xs text-warmDark-500">{[item.size, item.finish].filter(Boolean).join(' · ')}</p>
+                    <p className="text-xs text-warmDark-500">Qty: {item.quantity}</p>
+                  </div>
+                  <span className="font-extrabold text-warmDark-900 text-sm">{formatINR(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>
+          </div>
 
-            <div className="border-t border-slate-100 pt-4 space-y-2.5 text-xs font-semibold">
-              <div className="flex justify-between text-slate-400">
-                <span>Subtotal</span>
-                <span className="text-slate-800 font-extrabold">₹{cartTotalAmount.toFixed(2)}</span>
+          {/* Delivery info */}
+          <div className="bg-white border border-warmDark-100/60 rounded-3xl p-6 space-y-4">
+            <h2 className="font-extrabold text-warmDark-900 flex items-center gap-2"><FiMapPin className="w-5 h-5 text-brand-600" /> Delivery Information</h2>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <input className={input} placeholder="Full Name" value={form.name} onChange={set('name')} data-testid="checkout-name" />
+              <input className={input} placeholder="Mobile Number" value={form.mobile} onChange={set('mobile')} data-testid="checkout-mobile" />
+              <input className={`${input} sm:col-span-2`} placeholder="Email Address" value={form.email} onChange={set('email')} data-testid="checkout-email" />
+              <input className={`${input} sm:col-span-2`} placeholder="Street Address" value={form.address} onChange={set('address')} data-testid="checkout-address" />
+              <input className={input} placeholder="City" value={form.city} onChange={set('city')} data-testid="checkout-city" />
+              <input className={input} placeholder="State" value={form.state} onChange={set('state')} data-testid="checkout-state" />
+              <input className={input} placeholder="Pincode" value={form.pincode} onChange={set('pincode')} data-testid="checkout-pincode" />
+            </div>
+            <div className="bg-cream-100 rounded-xl px-4 py-2.5 text-xs font-semibold text-warmDark-700 flex items-center gap-2"><FiTruck className="w-4 h-4 text-brand-600" /> Estimated Delivery: 3–5 business days</div>
+          </div>
+        </div>
+
+        {/* Summary + payment */}
+        <div className="space-y-6 lg:sticky lg:top-28 h-fit">
+          <div className="bg-white border border-warmDark-100/60 rounded-3xl p-6 space-y-4">
+            <h2 className="font-extrabold text-warmDark-900">Order Summary</h2>
+            <div className="flex gap-2">
+              <div className="relative flex-grow">
+                <FiTag className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input value={couponInput} onChange={(e) => setCouponInput(e.target.value)} placeholder="Enter Coupon Code" className={`${input} pl-9`} data-testid="coupon-input" />
               </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Shipping Fee</span>
-                <span className="text-emerald-600 font-extrabold uppercase">Free</span>
-              </div>
-              <div className="border-t border-slate-100 pt-4 flex justify-between text-sm">
-                <span className="text-slate-800 font-extrabold">Total Amount</span>
-                <span className="text-indigo-600 font-black">₹{cartTotalAmount.toFixed(2)}</span>
+              <button onClick={applyCoupon} className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-xl text-sm font-bold" data-testid="coupon-apply">Apply</button>
+            </div>
+            <p className="text-[11px] text-warmDark-400">Try <span className="font-bold">FRAMEWALA10</span> or <span className="font-bold">FRAMEWALA15</span></p>
+            <div className="space-y-2.5 text-sm border-t border-cream-200 pt-3">
+              <div className="flex justify-between text-warmDark-500"><span>Subtotal</span><span className="font-bold text-warmDark-900">{formatINR(cartTotalAmount)}</span></div>
+              <div className="flex justify-between text-warmDark-500"><span>Delivery Charges</span><span className={`font-bold ${delivery === 0 ? 'text-brand-600' : 'text-warmDark-900'}`}>{delivery === 0 ? 'FREE' : formatINR(delivery)}</span></div>
+              {discount > 0 && <div className="flex justify-between text-warmDark-500"><span>Discount ({coupon})</span><span className="font-bold text-brand-600">− {formatINR(discount)}</span></div>}
+              <div className="flex justify-between items-center border-t border-cream-200 pt-3">
+                <span className="font-extrabold text-warmDark-900">Total Amount</span>
+                <div className="text-right"><span className="font-extrabold text-brand-700 text-xl">{formatINR(total)}</span><p className="text-[10px] text-warmDark-400">Inclusive of all taxes</p></div>
               </div>
             </div>
           </div>
 
-          <Button
-            onClick={handlePlaceOrder}
-            loading={submittingOrder}
-            disabled={!selectedAddressId}
-            className="w-full py-3 text-sm font-bold shadow-lg"
-          >
-            <span>Confirm & Place Order</span>
-          </Button>
-        </div>
+          <div className="bg-white border border-warmDark-100/60 rounded-3xl p-6 space-y-3">
+            <h2 className="font-extrabold text-warmDark-900">Payment Methods</h2>
+            {PAYMENTS.map((p) => (
+              <label key={p.id} className={`flex items-center justify-between gap-3 border rounded-2xl px-4 py-3 cursor-pointer transition-all ${payment === p.id ? 'border-brand-600 bg-brand-50/40' : 'border-cream-200 hover:border-warmDark-200'}`} data-testid={`payment-${p.id}`}>
+                <div className="flex items-center gap-3">
+                  <input type="radio" name="payment" checked={payment === p.id} onChange={() => setPayment(p.id)} className="accent-brand-600" />
+                  <span className="text-sm font-semibold text-warmDark-800">{p.label}</span>
+                </div>
+                <span className="text-[10px] font-bold text-warmDark-400">{p.tag}</span>
+              </label>
+            ))}
+            <p className="text-[11px] text-warmDark-400 flex items-center gap-1.5"><FiShield className="w-3.5 h-3.5" /> Your payment details are secure and encrypted.</p>
+          </div>
 
+          <button onClick={placeOrder} className="w-full py-4 bg-warmDark-900 hover:bg-brand-700 text-cream-50 rounded-full font-extrabold text-base shadow-warm-md transition-all active:scale-95 flex items-center justify-center gap-2" data-testid="place-order">
+            Place Order <FiChevronRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
+      {/* Trust badges */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-cream-200 pt-8">
+        {[{ icon: FiShield, t: 'Secure Payments', d: '100% Protected' }, { icon: FiRefreshCw, t: 'Easy Returns', d: '7 Days Return Policy' }, { icon: FiAward, t: 'Premium Quality', d: 'Best Quality Frames' }, { icon: FiTruck, t: 'Fast Delivery', d: 'On time, every time' }].map((b, i) => (
+          <div key={i} className="flex items-center gap-3"><div className="w-11 h-11 rounded-xl bg-gold-100 text-brand-700 flex items-center justify-center shrink-0"><b.icon className="w-5 h-5" /></div><div><p className="text-sm font-bold text-warmDark-900">{b.t}</p><p className="text-xs text-warmDark-500">{b.d}</p></div></div>
+        ))}
+      </div>
     </div>
   );
 };

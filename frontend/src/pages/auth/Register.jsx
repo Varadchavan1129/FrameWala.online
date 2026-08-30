@@ -1,184 +1,43 @@
-// Register.jsx
-// User Registration SignUp page
-
+// Register.jsx — local (mock) sign up.
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext.jsx';
-import Button from '../../components/common/Button.jsx';
-import { FiUser, FiMail, FiPhone, FiLock, FiUserPlus } from 'react-icons/fi';
+import { FiUser, FiMail, FiLock, FiUserPlus } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const Register = () => {
-  const { register, token } = useContext(AuthContext);
+  const { register, user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [valErrors, setValErrors] = useState({});
+  useEffect(() => { if (user) navigate('/', { replace: true }); }, [user]);
 
-  useEffect(() => {
-    if (token) {
-      navigate('/');
-    }
-  }, [token, navigate]);
-
-  const handleSubmit = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    setValErrors({});
-
-    if (!firstName || !lastName || !email || !password) {
-      toast.error('Please fill in all required fields.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const res = await register({
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        phone,
-        password
-      });
-      if (!res.success && res.validationErrors) {
-        setValErrors(res.validationErrors);
-      }
-    } finally {
-      setLoading(false);
-    }
+    if (!form.first_name || !form.email || !form.password) { toast.error('Please fill all required fields.'); return; }
+    await register(form);
   };
 
+  const input = 'w-full pl-10 pr-4 py-2.5 border border-warmDark-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 bg-white';
+
   return (
-    <div className="max-w-md mx-auto py-8">
-      <div className="bg-white border border-slate-100 p-8 rounded-3xl space-y-6 shadow-md">
-        
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Create Account</h1>
-          <p className="text-slate-400 text-xs">Join FrameWala to start ordering custom gifts.</p>
+    <div className="max-w-md mx-auto px-4 py-14">
+      <div className="bg-white border border-warmDark-100/60 p-8 rounded-3xl shadow-warm-md space-y-6">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-extrabold text-warmDark-900">Create Account</h1>
+          <p className="text-warmDark-500 text-xs">Join the FrameWala family.</p>
         </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">First Name *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  <FiUser className="w-4 h-4" />
-                </span>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Varad"
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
-              {valErrors.first_name && (
-                <p className="text-red-500 text-[10px] font-bold mt-1">{valErrors.first_name}</p>
-              )}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Last Name *</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  <FiUser className="w-4 h-4" />
-                </span>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Chavan"
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-                  required
-                />
-              </div>
-              {valErrors.last_name && (
-                <p className="text-red-500 text-[10px] font-bold mt-1">{valErrors.last_name}</p>
-              )}
-            </div>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="relative"><FiUser className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" /><input className={input} placeholder="First name" value={form.first_name} onChange={set('first_name')} required data-testid="reg-first" /></div>
+            <input className="w-full px-4 py-2.5 border border-warmDark-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 bg-white" placeholder="Last name" value={form.last_name} onChange={set('last_name')} data-testid="reg-last" />
           </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">Email Address *</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <FiMail className="w-4 h-4" />
-              </span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="varad@example.com"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-                required
-              />
-            </div>
-            {valErrors.email && (
-              <p className="text-red-500 text-[10px] font-bold mt-1">{valErrors.email}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">Phone Number</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <FiPhone className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="98765 43210"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-            {valErrors.phone && (
-              <p className="text-red-500 text-[10px] font-bold mt-1">{valErrors.phone}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-500 uppercase">Password *</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                <FiLock className="w-4 h-4" />
-              </span>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 6 characters"
-                className="w-full pl-10 pr-4 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
-                required
-              />
-            </div>
-            {valErrors.password && (
-              <p className="text-red-500 text-[10px] font-bold mt-1">{valErrors.password}</p>
-            )}
-          </div>
-
-          <Button type="submit" loading={loading} className="w-full py-3 text-xs font-bold">
-            <FiUserPlus className="mr-1.5 w-4 h-4" />
-            <span>Create Account</span>
-          </Button>
+          <div className="relative"><FiMail className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" /><input className={input} type="email" placeholder="Email address" value={form.email} onChange={set('email')} required data-testid="reg-email" /></div>
+          <div className="relative"><FiLock className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" /><input className={input} type="password" placeholder="Password" value={form.password} onChange={set('password')} required data-testid="reg-password" /></div>
+          <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm" data-testid="reg-submit"><FiUserPlus className="w-4 h-4" /> Create Account</button>
         </form>
-
-        {/* Footer info links */}
-        <div className="text-center text-xs text-slate-400 pt-2 border-t border-slate-50">
-          Already have an account?{' '}
-          <Link to="/login" className="text-indigo-600 font-bold hover:underline">
-            Login Here
-          </Link>
-        </div>
-
+        <p className="text-center text-xs text-warmDark-500">Already have an account? <Link to="/login" className="text-brand-600 font-bold hover:underline">Login</Link></p>
       </div>
     </div>
   );

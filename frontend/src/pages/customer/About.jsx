@@ -1,65 +1,31 @@
 // About.jsx
-// Corporate mission page
-
 import React from 'react';
-import { FiTarget, FiHeart, FiStar } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiHeart, FiAward, FiTruck, FiUsers } from 'react-icons/fi';
 
-const About = () => {
-  return (
-    <div className="space-y-12 max-w-4xl mx-auto">
-      
-      {/* Title */}
-      <div className="text-center space-y-3">
-        <h1 className="text-4xl font-extrabold tracking-tight">About FrameWala</h1>
-        <p className="text-slate-400 text-sm max-w-xl mx-auto">We preserve your treasured memories into custom wooden photo frames, magic coffee mugs, and printed apparel.</p>
-      </div>
-
-      {/* Main visual section */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-xl">
-        <div className="absolute top-[-20%] right-[-10%] w-96 h-96 bg-indigo-500/10 rounded-full blur-[80px]"></div>
-        <div className="relative z-10 space-y-6">
-          <h2 className="text-2xl md:text-3xl font-bold">Our Philosophy</h2>
-          <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Founded with a passion for customization, FrameWala aims to make personalized gifting simple, premium, and affordable. We source only high-durability matte acrylics, real pine wood frame moldings, and direct-to-garment print inks to bring your digital photographs to life.
-          </p>
-        </div>
-      </div>
-
-      {/* Three Pillar Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-slate-100 p-6 rounded-2xl space-y-4">
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl w-fit">
-            <FiTarget className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-slate-800 text-base">Our Mission</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            To provide students and gift seekers with customized tools to layout frames and merchandise at the tap of a button.
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-100 p-6 rounded-2xl space-y-4">
-          <div className="p-3 bg-rose-50 text-rose-500 rounded-xl w-fit">
-            <FiHeart className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-slate-800 text-base">Made with Love</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            Every photo frame layout, mug template design, and t-shirt vector print is verified by design experts before shipping.
-          </p>
-        </div>
-
-        <div className="bg-white border border-slate-100 p-6 rounded-2xl space-y-4">
-          <div className="p-3 bg-amber-50 text-amber-500 rounded-xl w-fit">
-            <FiStar className="w-6 h-6" />
-          </div>
-          <h3 className="font-extrabold text-slate-800 text-base">Premium Materials</h3>
-          <p className="text-slate-400 text-xs leading-relaxed">
-            We use premium sublimation processes on ceramic mugs and heavy-gauge cotton t-shirts to guarantee prints last forever.
-          </p>
-        </div>
-      </div>
-
+const About = () => (
+  <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+    <div className="text-center space-y-3">
+      <span className="text-xs font-bold uppercase tracking-widest text-brand-600">Our Story</span>
+      <h1 className="text-4xl font-extrabold text-warmDark-900 tracking-tight">Framing Memories with Love</h1>
+      <p className="text-warmDark-600 max-w-2xl mx-auto text-sm leading-relaxed">FrameWala crafts premium personalized photo frames and gifts that turn your favourite moments into timeless masterpieces. Every frame is handcrafted, quality-checked, and delivered with care.</p>
     </div>
-  );
-};
+    <div className="rounded-3xl overflow-hidden shadow-warm-lg border-4 border-white">
+      <img src="/images/hero_frame.jpg" alt="FrameWala craft" className="w-full h-72 object-cover" />
+    </div>
+    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {[{ icon: FiHeart, n: '10K+', l: 'Happy Customers' }, { icon: FiAward, n: 'Premium', l: 'Handcrafted Quality' }, { icon: FiTruck, n: '18K+', l: 'Pincodes Served' }, { icon: FiUsers, n: '4.8★', l: 'Average Rating' }].map((s, i) => (
+        <div key={i} className="bg-white border border-warmDark-100/60 rounded-2xl p-6 text-center space-y-2">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-gold-100 text-brand-700 flex items-center justify-center"><s.icon className="w-6 h-6" /></div>
+          <p className="text-xl font-extrabold text-warmDark-900">{s.n}</p>
+          <p className="text-xs text-warmDark-500">{s.l}</p>
+        </div>
+      ))}
+    </div>
+    <div className="text-center">
+      <Link to="/products" className="inline-block px-8 py-3.5 bg-brand-600 text-cream-50 rounded-full font-bold text-sm">Explore Our Frames</Link>
+    </div>
+  </div>
+);
 
 export default About;

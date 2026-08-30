@@ -1,139 +1,77 @@
 // CartContext.jsx
-// Context API for managing customer shopping cart operations
+// Guest-friendly cart backed by localStorage (no backend).
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { getCart, addToCart as addToCartAPI, updateCartItem, removeCartItem } from '../services/cartService.js';
-import { AuthContext } from './AuthContext.jsx';
 import toast from 'react-hot-toast';
 
 export const CartContext = createContext();
 
+const CART_KEY = 'framewala_cart';
+const load = () => {
+  try {
+    const raw = localStorage.getItem(CART_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
 export const CartProvider = ({ children }) => {
-  const { user } = useContext(AuthContext);
-  const [cartItems, setCartItems] = useState([]);
-  const [cartTotalAmount, setCartTotalAmount] = useState(0);
-  const [cartTotalItems, setCartTotalItems] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [cartItems, setCartItems] = useState(load);
 
-  // Load cart items when user logs in, reset cart when user logs out
   useEffect(() => {
-    if (user) {
-      fetchCart();
-    } else {
-      setCartItems([]);
-      setCartTotalAmount(0);
-      setCartTotalItems(0);
-    }
-  }, [user]);
+    localStorage.setItem(CART_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
 
-  // Retrieve current cart contents
-  const fetchCart = async () => {
-    try {
-      setLoading(true);
-      const res = await getCart();
-      if (res.success) {
-        setCartItems(res.data.items);
-        setCartTotalAmount(res.data.total_amount);
-        setCartTotalItems(res.data.total_items);
+  const cartTotalItems = cartItems.reduce((s, i) => s + i.quantity, 0);
+  const cartTotalAmount = cartItems.reduce((s, i) => s + i.price * i.quantity, 0);
+
+  const addToCart = (product, quantity = 1, options = {}) => {
+    const lineId = `${product.id}-${options.size || ''}-${options.finish || ''}`;
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.lineId === lineId);
+      if (existing) {
+        return prev.map((i) => (i.lineId === lineId ? { ...i, quantity: i.quantity + quantity } : i));
       }
-    } catch (error) {
-      console.error('Error fetching cart:', error.message);
-    } finally {
-      setLoading(false);
-    }
+      return [
+        ...prev,
+        {
+          lineId,
+          id: product.id,
+          name: product.name,
+          price: options.price ?? product.price,
+          image: options.image || product.primary_image,
+          size: options.size || null,
+          finish: options.finish || null,
+          is_customizable: product.is_customizable,
+          custom_image: options.custom_image || null,
+          quantity,
+        },
+      ];
+    });
+    toast.success('Added to cart!');
+    return true;
   };
 
-  // Add a product to the cart
-  const addToCart = async (productId, quantity = 1, customization = {}) => {
-    if (!user) {
-      toast.error('Please login to add items to your cart.');
-      return false;
-    }
-    try {
-      setLoading(true);
-      const res = await addToCartAPI(productId, quantity, customization);
-      if (res.success) {
-        setCartItems(res.data.items);
-        // Calculate totals locally or reload
-        const newTotalAmount = res.data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const newTotalItems = res.data.items.reduce((sum, item) => sum + item.quantity, 0);
-        setCartTotalAmount(parseFloat(newTotalAmount.toFixed(2)));
-        setCartTotalItems(newTotalItems);
-        toast.success('Added to cart!');
-        return true;
-      }
-    } catch (error) {
-      const errMsg = error.response?.data?.message || 'Failed to add item to cart.';
-      toast.error(errMsg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
+  const updateQty = (lineId, quantity) => {
+    if (quantity <= 0) return removeFromCart(lineId);
+    setCartItems((prev) => prev.map((i) => (i.lineId === lineId ? { ...i, quantity } : i)));
   };
 
-  // Update quantity of cart item
-  const updateQty = async (cartItemId, quantity) => {
-    try {
-      const res = await updateCartItem(cartItemId, quantity);
-      if (res.success) {
-        setCartItems(res.data.items);
-        const newTotalAmount = res.data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const newTotalItems = res.data.items.reduce((sum, item) => sum + item.quantity, 0);
-        setCartTotalAmount(parseFloat(newTotalAmount.toFixed(2)));
-        setCartTotalItems(newTotalItems);
-        toast.success('Cart updated.');
-        return true;
-      }
-    } catch (error) {
-      const errMsg = error.response?.data?.message || 'Failed to update item quantity.';
-      toast.error(errMsg);
-      return false;
-    }
+  const removeFromCart = (lineId) => {
+    setCartItems((prev) => prev.filter((i) => i.lineId !== lineId));
+    toast.success('Removed from cart.');
   };
 
-  // Remove item from cart
-  const removeFromCart = async (cartItemId) => {
-    try {
-      const res = await removeCartItem(cartItemId);
-      if (res.success) {
-        setCartItems(res.data.items);
-        const newTotalAmount = res.data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const newTotalItems = res.data.items.reduce((sum, item) => sum + item.quantity, 0);
-        setCartTotalAmount(parseFloat(newTotalAmount.toFixed(2)));
-        setCartTotalItems(newTotalItems);
-        toast.success('Removed from cart.');
-        return true;
-      }
-    } catch (error) {
-      const errMsg = error.response?.data?.message || 'Failed to remove item.';
-      toast.error(errMsg);
-      return false;
-    }
-  };
-
-  // Clear cart states locally (used after checkout)
-  const clearCart = () => {
-    setCartItems([]);
-    setCartTotalAmount(0);
-    setCartTotalItems(0);
-  };
+  const clearCart = () => setCartItems([]);
 
   return (
     <CartContext.Provider
-      value={{
-        cartItems,
-        cartTotalAmount,
-        cartTotalItems,
-        loading,
-        fetchCart,
-        addToCart,
-        updateQty,
-        removeFromCart,
-        clearCart,
-      }}
+      value={{ cartItems, cartTotalItems, cartTotalAmount, addToCart, updateQty, removeFromCart, clearCart }}
     >
       {children}
     </CartContext.Provider>
   );
 };
+
 export const useCart = () => useContext(CartContext);

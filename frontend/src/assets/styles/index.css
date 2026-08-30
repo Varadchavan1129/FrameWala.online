@@ -7,7 +7,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-cream-100 text-warmDark-800 font-sans antialiased selection:bg-terracotta-500 selection:text-white;
+    @apply bg-cream-100 text-warmDark-800 font-sans antialiased selection:bg-brand-600 selection:text-white;
   }
 }
 

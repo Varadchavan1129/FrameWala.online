@@ -1,34 +1,18 @@
 // NotFound.jsx
-// Fallback 404 Page
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Button from '../../components/common/Button.jsx';
 import { FiHome, FiAlertCircle } from 'react-icons/fi';
 
-const NotFound = () => {
-  return (
-    <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 space-y-6">
-      <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center shadow-inner">
-        <FiAlertCircle className="w-10 h-10" />
-      </div>
-      
-      <div className="space-y-2">
-        <h1 className="text-5xl font-black text-slate-800 tracking-tight">404</h1>
-        <h2 className="text-xl font-extrabold text-slate-700">Page Not Found</h2>
-        <p className="text-slate-400 text-xs max-w-xs mx-auto leading-relaxed">
-          The link you followed may be broken, or the page may have been removed. Let's get you back.
-        </p>
-      </div>
-
-      <Link to="/">
-        <Button className="text-xs font-bold py-3 px-6 shadow-md shadow-indigo-100">
-          <FiHome className="mr-1.5 w-4 h-4" />
-          <span>Back to Home</span>
-        </Button>
-      </Link>
+const NotFound = () => (
+  <div className="min-h-[65vh] flex flex-col items-center justify-center text-center px-4 space-y-6">
+    <div className="w-20 h-20 bg-gold-100 text-brand-700 rounded-3xl flex items-center justify-center"><FiAlertCircle className="w-10 h-10" /></div>
+    <div className="space-y-2">
+      <h1 className="text-6xl font-black text-warmDark-900 tracking-tight">404</h1>
+      <h2 className="text-xl font-extrabold text-warmDark-800">Page Not Found</h2>
+      <p className="text-warmDark-500 text-sm max-w-xs mx-auto">The page you're looking for may have moved. Let's frame that up and get you home.</p>
     </div>
-  );
-};
+    <Link to="/" className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-600 text-cream-50 rounded-full font-bold text-sm"><FiHome className="w-4 h-4" /> Back to Home</Link>
+  </div>
+);
 
 export default NotFound;

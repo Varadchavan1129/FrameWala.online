@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "start": "vite --config vite.config.js",
     "dev": "vite --config vite.config.js",
     "dev:admin": "vite --config vite.admin.config.js",
     "build": "vite build",

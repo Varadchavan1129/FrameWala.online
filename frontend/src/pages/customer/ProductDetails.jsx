@@ -1,459 +1,200 @@
-// ProductDetails.jsx
-// Details Page for products with gallery, customization options, and ratings/reviews
+// ProductDetails.jsx — gallery, size/finish/qty options, Buy Now / Add to Cart, reviews.
 
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getProductById, getProducts } from '../../services/productService.js';
-import { createReview, getProductReviews, updateReview, deleteReview } from '../../services/reviewService.js';
+import React, { useState, useContext, useMemo } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
-import { AuthContext } from '../../context/AuthContext.jsx';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import ProductCustomizer from '../../components/customizer/ProductCustomizer.jsx';
-import Loader from '../../components/common/Loader.jsx';
-import Button from '../../components/common/Button.jsx';
-import { FiHeart, FiShoppingCart, FiGift, FiStar, FiChevronRight } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { getProductById, getReviews, getRelated, formatINR } from '../../data/mockData.js';
+import {
+  FiHeart, FiShoppingCart, FiStar, FiChevronRight, FiChevronLeft, FiTruck,
+  FiRefreshCw, FiShield, FiImage, FiCheckCircle, FiZap,
+} from 'react-icons/fi';
+
+const highlightIcon = { wood: FiCheckCircle, print: FiImage, glass: FiShield, clean: FiZap };
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
 
-  const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedImage, setSelectedImage] = useState('');
-  
-  // Customizer state
-  const [showCustomizer, setShowCustomizer] = useState(false);
+  const product = getProductById(id);
+  const reviews = useMemo(() => (product ? getReviews(product.id) : []), [product]);
+  const related = useMemo(() => (product ? getRelated(product) : []), [product]);
 
-  // New Review Form State
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-  const [submittingReview, setSubmittingReview] = useState(false);
-  const [editingReviewId, setEditingReviewId] = useState(null);
-  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [imgIndex, setImgIndex] = useState(0);
+  const [sizeIdx, setSizeIdx] = useState(1);
+  const [finishIdx, setFinishIdx] = useState(0);
+  const [qty, setQty] = useState(1);
 
-  useEffect(() => {
-    const loadProductData = async () => {
-      try {
-        setLoading(true);
-        const prodRes = await getProductById(id);
-        if (prodRes.success) {
-          setProduct(prodRes.data.product);
-          // Set initial large image
-          const primaryImg = prodRes.data.product.images?.find(img => img.is_primary) || prodRes.data.product.images?.[0];
-          setSelectedImage(primaryImg?.image_url || '');
-
-          // Fetch related active items in the same category
-          const relatedRes = await getProducts({
-            categoryId: prodRes.data.product.category_id,
-            isActive: 'true'
-          });
-          if (relatedRes.success) {
-            const others = relatedRes.data.products.filter(p => p.product_id !== prodRes.data.product.product_id);
-            setRelatedProducts(others.slice(0, 4));
-          }
-        }
-
-        const revRes = await getProductReviews(id);
-        if (revRes.success) {
-          setReviews(revRes.data.reviews);
-        }
-      } catch (error) {
-        console.error('Error loading product details:', error.message);
-        toast.error('Failed to load product details.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProductData();
-  }, [id]);
-
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      toast.error('You must be logged in to leave a review.');
-      return;
-    }
-
-    try {
-      setSubmittingReview(true);
-      let res;
-      if (editingReviewId) {
-        res = await updateReview(editingReviewId, {
-          rating: reviewRating,
-          review: reviewText
-        });
-      } else {
-        res = await createReview({
-          product_id: id,
-          rating: reviewRating,
-          review: reviewText
-        });
-      }
-
-      if (res.success) {
-        toast.success(editingReviewId ? 'Review updated!' : 'Thank you for your feedback!');
-        setReviews(res.data.reviews);
-        setReviewText('');
-        setReviewRating(5);
-        setEditingReviewId(null);
-        // Reload details to refresh avg rating
-        const prodRes = await getProductById(id);
-        if (prodRes.success) setProduct(prodRes.data.product);
-      }
-    } catch (error) {
-      const errMsg = error.response?.data?.message || 'Failed to submit review.';
-      toast.error(errMsg);
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
-  const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm('Are you sure you want to delete this review?')) return;
-
-    try {
-      const res = await deleteReview(reviewId);
-      if (res.success) {
-        toast.success('Review deleted.');
-        setReviews(res.data.reviews);
-        // Reload details to refresh avg rating
-        const prodRes = await getProductById(id);
-        if (prodRes.success) setProduct(prodRes.data.product);
-      }
-    } catch (error) {
-      toast.error('Failed to delete review.');
-    }
-  };
-
-  const handleAddToCart = async () => {
-    if (product.is_customizable) {
-      setShowCustomizer(true);
-      return;
-    }
-    await addToCart(product.product_id, 1);
-  };
-
-  const handleCustomizerAddToCart = async (customizationData) => {
-    await addToCart(product.product_id, 1, customizationData);
-  };
-
-  if (loading) return <Loader />;
   if (!product) {
     return (
-      <div className="text-center py-20 bg-white border border-slate-100 rounded-2xl space-y-4">
-        <p className="text-slate-400 font-semibold">Product not found.</p>
-        <Link to="/products"><Button size="small">Return to Shop</Button></Link>
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
+        <p className="text-warmDark-500 font-semibold">Product not found.</p>
+        <Link to="/products" className="inline-block px-6 py-3 bg-brand-600 text-cream-50 rounded-full font-bold text-sm">Back to Shop</Link>
       </div>
     );
   }
 
-  const isFavorited = isInWishlist(product.product_id);
-  const outOfStock = product.stock_quantity <= 0;
+  const price = product.price + product.sizes[sizeIdx].delta;
+  const favorited = isInWishlist(product.id);
+  const options = () => ({ price, size: product.sizes[sizeIdx].label, finish: product.finishes[finishIdx].name, image: product.primary_image });
+
+  const handleAdd = () => addToCart(product, qty, options());
+  const handleBuyNow = () => { addToCart(product, qty, options()); navigate('/checkout'); };
 
   return (
-    <div className="space-y-12">
-      
-      {/* Breadcrumbs Navigation */}
-      <nav className="flex items-center space-x-2 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-        <Link to="/" className="hover:text-indigo-600">Home</Link>
-        <FiChevronRight className="w-3 h-3" />
-        <Link to="/products" className="hover:text-indigo-600">Products</Link>
-        <FiChevronRight className="w-3 h-3" />
-        <span className="text-slate-700 font-bold truncate max-w-[150px] sm:max-w-xs">{product.product_name}</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-12">
+      <nav className="flex items-center gap-2 text-xs font-semibold text-warmDark-400">
+        <Link to="/" className="hover:text-brand-600">Home</Link><FiChevronRight className="w-3 h-3" />
+        <Link to="/products" className="hover:text-brand-600">Photo Frames</Link><FiChevronRight className="w-3 h-3" />
+        <span className="text-warmDark-800 truncate max-w-[160px]">{product.name}</span>
       </nav>
 
-      {/* Main product details block */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white border border-slate-100 p-6 md:p-8 rounded-3xl">
-        
-        {/* Left Side: Images Gallery */}
+      <div className="grid lg:grid-cols-2 gap-10">
+        {/* Gallery */}
         <div className="space-y-4">
-          <div className="aspect-square bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
-            <img
-              src={selectedImage || 'https://via.placeholder.com/600?text=No+Image'}
-              alt={product.product_name}
-              className="object-cover w-full h-full"
-            />
+          <div className="relative aspect-square bg-cream-200/50 rounded-3xl overflow-hidden border border-warmDark-100/60">
+            {product.badge && <span className="absolute top-4 left-4 z-10 bg-brand-700 text-cream-50 text-[11px] font-bold px-3 py-1 rounded-full">{product.badge}</span>}
+            <button onClick={() => toggleWishlist(product)} className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md ${favorited ? 'bg-red-50 text-red-500' : 'bg-white text-warmDark-600'}`} data-testid="pdp-wishlist">
+              <FiHeart className={`w-4.5 h-4.5 ${favorited ? 'fill-current' : ''}`} />
+            </button>
+            <motion.img key={imgIndex} initial={{ opacity: 0.4, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}
+              src={product.images[imgIndex]} alt={product.name} className="w-full h-full object-cover" data-testid="pdp-main-image" />
+            <button onClick={() => setImgIndex((i) => (i - 1 + product.images.length) % product.images.length)} className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white"><FiChevronLeft className="w-5 h-5" /></button>
+            <button onClick={() => setImgIndex((i) => (i + 1) % product.images.length)} className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white"><FiChevronRight className="w-5 h-5" /></button>
           </div>
-          
-          {/* Thumbnails list */}
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {product.images.map((img) => (
-                <button
-                  key={img.image_id}
-                  onClick={() => setSelectedImage(img.image_url)}
-                  className={`w-20 h-20 bg-slate-50 border rounded-xl overflow-hidden shrink-0 transition-all duration-200 ${
-                    selectedImage === img.image_url 
-                      ? 'border-indigo-600 ring-2 ring-indigo-100' 
-                      : 'border-slate-200 hover:border-slate-400'
-                  }`}
-                >
-                  <img src={img.image_url} alt="product thumbnail" className="w-full h-full object-cover" />
-                </button>
+          <div className="flex gap-3 overflow-x-auto no-scrollbar">
+            {product.images.map((img, i) => (
+              <button key={i} onClick={() => setImgIndex(i)} className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${imgIndex === i ? 'border-brand-600' : 'border-warmDark-100 hover:border-warmDark-300'}`} data-testid={`pdp-thumb-${i}`}>
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="space-y-5">
+          <h1 className="text-3xl font-extrabold text-warmDark-900 tracking-tight">{product.name}</h1>
+          <p className="text-warmDark-600 text-sm">{product.subtitle}</p>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="inline-flex items-center gap-1 bg-brand-600 text-cream-50 px-2 py-0.5 rounded-md font-bold text-xs"><FiStar className="w-3 h-3 fill-current" /> {product.rating}</span>
+            <span className="text-warmDark-500">({product.review_count}) Ratings</span>
+          </div>
+
+          <div className="border-t border-cream-200 pt-4">
+            <div className="flex items-baseline gap-3">
+              <span className="text-3xl font-extrabold text-warmDark-900">{formatINR(price)}</span>
+              <span className="text-warmDark-400 line-through">{formatINR(product.mrp + product.sizes[sizeIdx].delta)}</span>
+            </div>
+            <p className="text-xs text-warmDark-500 mt-1">Inclusive of all taxes</p>
+          </div>
+
+          {/* Size */}
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-warmDark-900">Size</p>
+            <div className="flex flex-wrap gap-2">
+              {product.sizes.map((s, i) => (
+                <button key={s.label} onClick={() => setSizeIdx(i)} className={`px-4 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${sizeIdx === i ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-warmDark-100 text-warmDark-700 hover:border-warmDark-300'}`} data-testid={`size-${i}`}>{s.label}</button>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Right Side: Product Details */}
-        <div className="space-y-6 flex flex-col justify-between">
-          <div className="space-y-4">
-            <span className="bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
-              {product.category_name}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 leading-tight">
-              {product.product_name}
-            </h1>
-
-            {/* Ratings Summary */}
-            <div className="flex items-center space-x-2.5">
-              <div className="flex items-center text-amber-500">
-                <FiStar className="fill-current w-4.5 h-4.5" />
-                <span className="font-extrabold text-sm ml-1 text-slate-800">{product.average_rating}</span>
-              </div>
-              <span className="text-slate-300 text-xs">|</span>
-              <span className="text-slate-400 text-xs font-semibold">{product.total_reviews} Rating(s)</span>
-            </div>
-
-            {/* Price display */}
-            <div className="text-2xl font-extrabold text-slate-800">
-              ₹{parseFloat(product.price).toLocaleString('en-IN')}
-            </div>
-
-            {/* Product description */}
-            <p className="text-slate-500 text-sm leading-relaxed border-t border-slate-100 pt-4">
-              {product.description || 'No description available for this item.'}
-            </p>
-
-            {/* Customization Details Trigger */}
-            {product.is_customizable && (
-              <div className="bg-amber-50/50 border border-amber-200/60 p-4 rounded-2xl space-y-3">
-                <h3 className="font-extrabold text-xs text-amber-800 uppercase tracking-wider flex items-center space-x-1.5">
-                  <FiGift className="w-4 h-4 text-amber-600" />
-                  <span>Customizable Product</span>
-                </h3>
-                <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-                  This product supports custom printing, photo templates, custom text overlays, and scaling layouts.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setShowCustomizer(true)}
-                  className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
-                  id="customize-product-btn"
-                >
-                  <FiGift className="w-4 h-4" />
-                  <span>Customize Product</span>
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Action Row Buttons */}
-          <div className="space-y-4 border-t border-slate-100 pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Add to Cart button */}
-              <Button
-                onClick={handleAddToCart}
-                disabled={outOfStock}
-                variant="primary"
-                className="flex-grow py-3 text-sm font-bold"
-              >
-                <FiShoppingCart className="mr-2 w-4.5 h-4.5" />
-                <span>{outOfStock ? 'Out of Stock' : 'Add to Shopping Cart'}</span>
-              </Button>
-              
-              {/* Wishlist toggle button */}
-              <button
-                onClick={() => toggleWishlist(product.product_id)}
-                className={`py-3 px-6 rounded-xl border flex items-center justify-center font-bold text-sm transition-all duration-200 focus:outline-none ${
-                  isFavorited
-                    ? 'border-red-200 bg-red-50 text-red-500 hover:bg-red-100'
-                    : 'border-slate-200 hover:border-slate-300 text-slate-600 hover:text-indigo-600'
-                }`}
-              >
-                <FiHeart className={`mr-2 w-4.5 h-4.5 ${isFavorited ? 'fill-current' : ''}`} />
-                <span>{isFavorited ? 'Wishlisted' : 'Add to Wishlist'}</span>
-              </button>
+          {/* Finish */}
+          <div className="space-y-2">
+            <p className="text-sm font-bold text-warmDark-900">Finish</p>
+            <div className="flex flex-wrap gap-3">
+              {product.finishes.map((f, i) => (
+                <button key={f.name} onClick={() => setFinishIdx(i)} title={f.name} className={`w-9 h-9 rounded-full border-2 transition-all ${finishIdx === i ? 'ring-2 ring-brand-600 ring-offset-2 border-white' : 'border-white shadow'}`} style={{ backgroundColor: f.hex }} data-testid={`finish-${i}`} />
+              ))}
             </div>
-            
-            {/* Inventory Alerts */}
-            {product.stock_quantity > 0 && product.stock_quantity <= 5 && (
-              <p className="text-red-500 text-xs font-semibold text-center">
-                ⚠️ Hurry, only {product.stock_quantity} left in stock!
-              </p>
-            )}
+            <p className="text-xs text-warmDark-500">Selected: {product.finishes[finishIdx].name}</p>
+          </div>
+
+          {/* Customize box */}
+          <div className="flex items-center justify-between gap-4 bg-cream-100 border border-warmDark-100/60 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white text-brand-700 flex items-center justify-center border border-warmDark-100"><FiImage className="w-5 h-5" /></div>
+              <div><p className="text-sm font-bold text-warmDark-900">Make it personal!</p><p className="text-xs text-warmDark-500">Add your photo and see how it looks.</p></div>
+            </div>
+            <Link to="/custom-frame" className="px-4 py-2 border-2 border-brand-600 text-brand-700 rounded-full text-xs font-bold hover:bg-brand-600 hover:text-cream-50 transition-colors shrink-0" data-testid="pdp-customize">Customize Now</Link>
+          </div>
+
+          {/* Qty + actions */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center bg-cream-100 rounded-full border border-warmDark-100">
+              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center text-warmDark-700 text-lg" data-testid="qty-minus">−</button>
+              <span className="w-8 text-center font-bold" data-testid="qty-value">{qty}</span>
+              <button onClick={() => setQty((q) => q + 1)} className="w-10 h-10 flex items-center justify-center text-warmDark-700 text-lg" data-testid="qty-plus">+</button>
+            </div>
+            {product.stock <= 15 && <p className="text-xs text-terracotta-600 font-bold">Only {product.stock} left! Hurry up</p>}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={handleBuyNow} className="py-3.5 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm shadow-warm-md transition-all active:scale-95" data-testid="buy-now">Buy Now</button>
+            <button onClick={handleAdd} className="py-3.5 bg-white border-2 border-warmDark-900 text-warmDark-900 hover:bg-warmDark-900 hover:text-cream-50 rounded-full font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2" data-testid="add-to-cart"><FiShoppingCart className="w-4 h-4" /> Add to Cart</button>
+          </div>
+
+          {/* Delivery badges */}
+          <div className="grid grid-cols-3 gap-3 border-t border-cream-200 pt-5">
+            {[{ icon: FiTruck, t: 'Free Delivery', d: 'Above ₹999' }, { icon: FiRefreshCw, t: '7 Days Return', d: 'Easy returns' }, { icon: FiShield, t: 'Secure Payment', d: '100% protected' }].map((b, i) => (
+              <div key={i} className="flex items-center gap-2"><b.icon className="w-5 h-5 text-brand-600 shrink-0" /><div><p className="text-[11px] font-bold text-warmDark-900 leading-tight">{b.t}</p><p className="text-[10px] text-warmDark-500">{b.d}</p></div></div>
+            ))}
           </div>
         </div>
-
       </div>
 
-      {/* Bottom Section: Reviews and Ratings */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-extrabold tracking-tight">Customer Reviews</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Review form */}
-          <div className="lg:col-span-1 bg-white border border-slate-100 p-6 rounded-2xl h-fit space-y-4">
-            <div className="flex items-center justify-between border-b pb-2">
-              <h3 className="font-extrabold text-slate-800 text-sm">{editingReviewId ? 'Edit Your Review' : 'Write a Review'}</h3>
-              {editingReviewId && (
-                <button
-                  onClick={() => {
-                    setEditingReviewId(null);
-                    setReviewRating(5);
-                    setReviewText('');
-                  }}
-                  className="text-xs text-indigo-600 hover:text-indigo-700 font-bold"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-            {user ? (
-              <form onSubmit={handleReviewSubmit} className="space-y-4">
-                {/* Rating selection */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Rating</label>
-                  <div className="flex space-x-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setReviewRating(star)}
-                        className="p-1 focus:outline-none text-amber-500 hover:scale-110 transition-transform"
-                      >
-                        <FiStar className={`w-6 h-6 ${reviewRating >= star ? 'fill-current' : ''}`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Review Text */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Review Comment</label>
-                  <textarea
-                    rows={4}
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Share your thoughts on print quality, frame durability, packaging..."
-                    className="w-full px-3.5 py-2 border border-slate-200 focus:border-indigo-500 rounded-lg text-sm placeholder-slate-400 focus:outline-none bg-slate-50 focus:bg-white transition-all"
-                    required
-                  ></textarea>
-                </div>
-
-                <Button type="submit" loading={submittingReview} className="w-full text-xs font-bold py-2.5">
-                  Submit Review
-                </Button>
-              </form>
-            ) : (
-              <div className="text-center py-6 bg-slate-50 rounded-xl space-y-3">
-                <p className="text-slate-400 text-xs font-semibold">Please log in to share your review.</p>
-                <Link to="/login">
-                  <Button variant="secondary" size="small">Login Page</Button>
-                </Link>
+      {/* Highlights */}
+      <section>
+        <h2 className="text-xl font-extrabold text-warmDark-900 mb-4">Product Highlights</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {product.highlights.map((h, i) => {
+            const Icon = highlightIcon[h.icon] || FiCheckCircle;
+            return (
+              <div key={i} className="flex items-center gap-3 bg-white border border-warmDark-100/60 rounded-2xl p-4">
+                <div className="w-10 h-10 rounded-xl bg-gold-100 text-brand-700 flex items-center justify-center shrink-0"><Icon className="w-5 h-5" /></div>
+                <div><p className="text-sm font-bold text-warmDark-900">{h.title}</p><p className="text-xs text-warmDark-500">{h.desc}</p></div>
               </div>
-            )}
-          </div>
-
-          {/* Reviews list */}
-          <div className="lg:col-span-2 space-y-4">
-            {reviews.length === 0 ? (
-              <div className="text-center py-12 bg-white border border-slate-100 rounded-2xl text-slate-400 font-semibold text-sm">
-                No reviews yet for this product. Be the first to share your experience!
-              </div>
-            ) : (
-              <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                {reviews.map((rev) => (
-                  <div key={rev.review_id} className="bg-white border border-slate-100 p-5 rounded-2xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-1 font-bold text-sm text-slate-800">
-                        <span>{rev.first_name} {rev.last_name}</span>
-                        {user && user.user_id === rev.user_id && (
-                          <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-normal">
-                            You
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-[10px] text-slate-400 font-semibold">
-                          {new Date(rev.created_at).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
-                        </span>
-                        {user && (user.user_id === rev.user_id || user.role === 'admin') && (
-                          <div className="flex items-center space-x-2">
-                            {user.user_id === rev.user_id && (
-                              <button
-                                onClick={() => {
-                                  setEditingReviewId(rev.review_id);
-                                  setReviewRating(rev.rating);
-                                  setReviewText(rev.review || '');
-                                }}
-                                className="text-slate-400 hover:text-indigo-600 font-bold text-[10px] uppercase transition-colors"
-                              >
-                                Edit
-                              </button>
-                            )}
-                            <button
-                              onClick={() => handleDeleteReview(rev.review_id)}
-                              className="text-slate-400 hover:text-red-500 font-bold text-[10px] uppercase transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Star row */}
-                    <div className="flex items-center text-amber-500">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <FiStar key={star} className={`w-3.5 h-3.5 ${rev.rating >= star ? 'fill-current' : ''}`} />
-                      ))}
-                    </div>
-
-                    <p className="text-slate-500 text-xs leading-relaxed">
-                      {rev.review || 'No written feedback provided.'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
+            );
+          })}
         </div>
       </section>
 
-      {/* Related Products Grid */}
-      {relatedProducts.length > 0 && (
-        <section className="space-y-6 border-t border-slate-100 pt-12">
-          <h2 className="text-2xl font-extrabold tracking-tight">Related Products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map((prod) => (
-              <ProductCard key={prod.product_id} product={prod} />
+      {/* Description + Reviews */}
+      <section className="grid lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-xl font-extrabold text-warmDark-900">Description</h2>
+          <p className="text-warmDark-600 text-sm leading-relaxed">{product.description}</p>
+          <h3 className="text-lg font-extrabold text-warmDark-900 pt-4">Customer Reviews</h3>
+          <div className="space-y-3">
+            {reviews.map((r) => (
+              <div key={r.id} className="bg-white border border-warmDark-100/60 rounded-2xl p-5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-warmDark-900 text-sm">{r.name}</span>
+                  <span className="text-[11px] text-warmDark-400">{r.date}</span>
+                </div>
+                <div className="flex text-gold-400">{[1, 2, 3, 4, 5].map((s) => <FiStar key={s} className={`w-3.5 h-3.5 ${r.rating >= s ? 'fill-current' : 'text-warmDark-200'}`} />)}</div>
+                <p className="text-warmDark-600 text-sm">{r.text}</p>
+              </div>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+        <div className="bg-cream-100 border border-warmDark-100/60 rounded-2xl p-6 h-fit text-center space-y-2">
+          <p className="text-5xl font-extrabold text-warmDark-900">{product.rating}</p>
+          <div className="flex justify-center text-gold-400">{[1, 2, 3, 4, 5].map((s) => <FiStar key={s} className={`w-5 h-5 ${product.rating >= s ? 'fill-current' : 'text-warmDark-200'}`} />)}</div>
+          <p className="text-sm text-warmDark-500">Based on {product.review_count} reviews</p>
+        </div>
+      </section>
 
-      {product && (
-        <ProductCustomizer
-          product={product}
-          isOpen={showCustomizer}
-          onClose={() => setShowCustomizer(false)}
-          onAddToCart={handleCustomizerAddToCart}
-        />
-      )}
-
+      {/* Related */}
+      <section>
+        <h2 className="text-xl font-extrabold text-warmDark-900 mb-5">You May Also Like</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
+          {related.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+      </section>
     </div>
   );
 };
