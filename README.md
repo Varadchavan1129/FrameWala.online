@@ -1,3 +1,5 @@
+﻿![FrameWala Banner](docs/banner.jpg)
+
 # FrameWala E-Commerce Website
 
 Welcome to **FrameWala**, a beginner-friendly full-stack e-commerce website designed to sell customized products such as:
@@ -225,6 +227,3 @@ To set up the MySQL database on your local machine:
    USE framewala_db;
    SELECT * FROM products;
    ```
-#   F r a m e W a l a . o n l i n e  
- #   F r a m e W a l a . o n l i n e  
- 
