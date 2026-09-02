@@ -1,5 +1,5 @@
 // App.jsx
-// Core React entry container wrapping routers, contexts, and toasts
+// Main application shell component configuring top-level providers, routing table, and global notification toasts.
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
