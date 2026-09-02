@@ -53,7 +53,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-cream-300/60">
-          <p>© 2026 FrameWala. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} FrameWala. All rights reserved.</p>
           <div className="flex items-center gap-2">
             {['VISA', 'MasterCard', 'UPI', 'PhonePe', 'Paytm', 'COD'].map((p) => (
               <span key={p} className="px-2 py-1 bg-warmDark-800 rounded text-[10px] font-bold text-cream-200">{p}</span>
