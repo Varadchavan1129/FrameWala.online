@@ -40,7 +40,11 @@ app.get('/', (req, res) => {
 
 // Health check API
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
+  res.status(200).json({ 
+    status: 'OK',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Modular routes mapping
