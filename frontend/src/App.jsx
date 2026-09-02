@@ -1,5 +1,6 @@
 // App.jsx
-// Core React entry container wrapping routers, contexts, and toasts
+// Core React entry container wrapping routers, contexts, and global notifications for FrameWala
+// Main application root component
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
