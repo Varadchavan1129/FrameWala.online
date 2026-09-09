@@ -139,3 +139,9 @@ For students learning React structure, we recommend exploring the frontend in th
 5.  **Test Admin Boards**:
     *   Grant admin rights to your test user inside MySQL (`UPDATE users SET role = 'admin' WHERE user_id = <ID>`).
     *   Log back in. Navigate to `http://localhost:3000/admin`. Verify you can see dashboard metrics, create categories, adjust product details, and restock low inventory alerts.
+
+---
+
+## 👥 Contributors
+
+- **Aparna Jadhav** (`@aparnajadhav1234`)
