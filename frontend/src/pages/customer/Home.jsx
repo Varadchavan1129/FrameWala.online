@@ -109,6 +109,23 @@ const Home = () => {
         </div>
       </section>
 
+      {/* PERSONALIZE YOUR FRAME BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <img
+            src="/images/personalize_banner.jpg"
+            alt="FrameWala personalized photo frame process"
+            className="w-full rounded-3xl shadow-warm-lg border border-warmDark-100/40"
+            style={{ objectFit: 'contain', maxHeight: '420px' }}
+          />
+        </motion.div>
+      </section>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-16">
         {/* SHOP BY CATEGORY */}
         <section>
@@ -137,39 +154,7 @@ const Home = () => {
           </motion.div>
         </section>
 
-        {/* CUSTOMIZE YOUR FRAME */}
-        <section className="bg-gradient-to-br from-cream-200/70 to-cream-100 rounded-3xl border border-warmDark-100/60 p-8 lg:p-12">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div className="space-y-6">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-brand-600">Simple 4-Step Journey</span>
-                <h2 className="text-3xl font-extrabold text-warmDark-900 tracking-tight mt-1">Customize Your Frame</h2>
-                <p className="text-warmDark-600 text-sm mt-2">Create something unique in just a few simple steps.</p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {[
-                  { icon: FiImage, t: 'Choose Frame', d: 'Pick a design' },
-                  { icon: FiUpload, t: 'Upload Photo', d: 'Add your memory' },
-                  { icon: FiSliders, t: 'Customize', d: 'Adjust & preview' },
-                  { icon: FiShoppingBag, t: 'Place Order', d: 'We deliver joy' },
-                ].map((s, i) => (
-                  <div key={i} className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-white border border-warmDark-100 text-brand-700 flex items-center justify-center shadow-warm-sm"><s.icon className="w-5 h-5" /></div>
-                    <p className="text-xs font-extrabold text-warmDark-900">{s.t}</p>
-                    <p className="text-[10px] text-warmDark-500">{s.d}</p>
-                  </div>
-                ))}
-              </div>
-              <Link to="/custom-frame" className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm shadow-warm-md transition-all active:scale-95" data-testid="customize-cta">
-                Start Customizing <FiArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="relative rounded-2xl overflow-hidden shadow-warm-lg border-4 border-white">
-              <img src="/images/custom_section.png" alt="Customize your frame" className="w-full h-72 object-cover"
-                onError={(e) => { e.currentTarget.src = '/images/products/product_01.jpg'; }} />
-            </div>
-          </div>
-        </section>
+        {/* CUSTOMIZE YOUR FRAME — replaced by personalize banner above */}
 
         {/* NEW ARRIVALS */}
         <section>
