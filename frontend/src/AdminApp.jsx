@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './routes/AppRoutes.jsx';
+import AdminRoutes from './routes/AdminRoutes.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 
@@ -12,7 +12,7 @@ function AdminApp() {
     <BrowserRouter>
       <AuthProvider>
         
-        <AppRoutes />
+        <AdminRoutes />
         
         <Toaster 
           position="bottom-right"
