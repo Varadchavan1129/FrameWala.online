@@ -6,12 +6,12 @@ import { motion } from 'framer-motion';
 import ProductCard from '../../components/customer/ProductCard.jsx';
 import { PRODUCTS, CATEGORY_TILES, formatINR } from '../../data/mockData.js';
 import {
-  FiArrowRight, FiImage, FiZap, FiCoffee, FiTag, FiSquare, FiKey, FiSmartphone,
-  FiGift, FiCheckCircle, FiStar, FiShield, FiHeadphones, FiUpload, FiSliders,
+  FiArrowRight, FiImage,
+  FiGift, FiCheckCircle, FiStar, FiShield, FiHeadphones, FiUpload,
   FiShoppingBag, FiTruck, FiRefreshCw, FiAward,
 } from 'react-icons/fi';
 
-const iconMap = { image: FiImage, zap: FiZap, coffee: FiCoffee, tag: FiTag, square: FiSquare, key: FiKey, phone: FiSmartphone, gift: FiGift };
+const iconMap = { image: FiImage };
 
 const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } } };
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
@@ -127,23 +127,7 @@ const Home = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-16">
-        {/* SHOP BY CATEGORY */}
-        <section>
-          <SectionHead title="Shop By Category" to="/products" />
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3 sm:gap-4">
-            {CATEGORY_TILES.map((c) => {
-              const Icon = iconMap[c.icon];
-              return (
-                <Link key={c.id} to={`/products?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center" data-testid={`category-${c.id}`}>
-                  <div className="w-full aspect-square rounded-2xl bg-cream-200/70 group-hover:bg-gold-100 border border-warmDark-100/60 flex items-center justify-center transition-colors">
-                    <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-brand-700" />
-                  </div>
-                  <span className="text-[11px] sm:text-xs font-semibold text-warmDark-800 group-hover:text-brand-600 transition-colors">{c.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
+        {/* SHOP BY CATEGORY — removed; only Photo Frames category remains */}
 
         {/* BEST SELLERS */}
         <section>
@@ -165,21 +149,7 @@ const Home = () => {
           </motion.div>
         </section>
 
-        {/* PROMO BANNERS */}
-        <section className="grid md:grid-cols-3 gap-5">
-          <div className="relative rounded-3xl overflow-hidden bg-warmDark-900 text-cream-50 p-7 min-h-[190px] flex flex-col justify-between">
-            <div><p className="text-2xl font-extrabold">Flat 20% Off</p><p className="text-sm text-cream-200 mt-1">On LED Frames</p></div>
-            <Link to="/products?category=led" className="self-start px-5 py-2.5 bg-gold-400 text-warmDark-900 rounded-full text-xs font-bold hover:bg-gold-100 transition-colors">Shop Now</Link>
-          </div>
-          <div className="relative rounded-3xl overflow-hidden bg-gold-100 text-warmDark-900 p-7 min-h-[190px] flex flex-col justify-between">
-            <div><p className="text-2xl font-extrabold">Perfect Gifts</p><p className="text-sm text-warmDark-600 mt-1">For Every Occasion</p></div>
-            <Link to="/products?category=gifts" className="self-start px-5 py-2.5 bg-warmDark-900 text-cream-50 rounded-full text-xs font-bold hover:bg-brand-700 transition-colors">Explore Gifts</Link>
-          </div>
-          <div className="relative rounded-3xl overflow-hidden bg-cream-200 text-warmDark-900 p-7 min-h-[190px] flex flex-col justify-between border border-warmDark-100">
-            <div><p className="text-2xl font-extrabold">Custom Mugs</p><p className="text-sm text-warmDark-600 mt-1">Starting from {formatINR(399)}</p></div>
-            <Link to="/products?category=gifts" className="self-start px-5 py-2.5 bg-brand-600 text-cream-50 rounded-full text-xs font-bold hover:bg-brand-700 transition-colors">Shop Mugs</Link>
-          </div>
-        </section>
+        {/* PROMO BANNERS — removed unrelated LED/Gifts/Mugs promotions */}
 
         {/* VALUE PROPS */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">

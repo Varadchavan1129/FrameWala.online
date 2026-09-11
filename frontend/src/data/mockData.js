@@ -74,14 +74,7 @@ export const PRODUCTS = [
     description: 'A modern, minimal white frame designed to cherish your baby\'s cutest milestones and everyday little moments.',
     is_customizable: true,
   },
-  {
-    id: 6, slug: 'warm-glow-led-light-frame',
-    name: 'Warm Glow LED Light Frame', category: 'led', category_name: 'LED Light Frames',
-    price: 1299, mrp: 1799, rating: 4.7, review_count: 291, badge: '20% OFF', stock: 9,
-    subtitle: 'Light up your memories with a warm glow.',
-    description: 'Bring your photos to life with a soft ambient backlight. USB powered warm-white LED frame that sets a cosy mood in any room.',
-    is_customizable: true,
-  },
+
   {
     id: 7, slug: 'rustic-vintage-wooden-frame',
     name: 'Rustic Vintage Wooden Frame', category: 'personalized', category_name: 'Wooden Frames',
@@ -125,13 +118,6 @@ export const PRODUCTS = [
 
 export const CATEGORY_TILES = [
   { id: 'personalized', label: 'Photo Frames', icon: 'image' },
-  { id: 'led', label: 'LED Frames', icon: 'zap' },
-  { id: 'mugs', label: 'Mugs', icon: 'coffee' },
-  { id: 'tshirts', label: 'T-Shirts', icon: 'tag' },
-  { id: 'pillows', label: 'Pillows', icon: 'square' },
-  { id: 'keychains', label: 'Keychains', icon: 'key' },
-  { id: 'covers', label: 'Mobile Covers', icon: 'phone' },
-  { id: 'gifts', label: 'Gift Boxes', icon: 'gift' },
 ];
 
 export const FILTER_CATEGORIES = [
@@ -141,7 +127,6 @@ export const FILTER_CATEGORIES = [
   { id: 'wedding', label: 'Wedding Frames' },
   { id: 'collage', label: 'Collage Frames' },
   { id: 'personalized', label: 'Wooden / Personalized' },
-  { id: 'led', label: 'LED Light Frames' },
 ];
 
 const REVIEW_POOL = [
