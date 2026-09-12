@@ -3,16 +3,16 @@
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import AppRoutes from './routes/AppRoutes.jsx';
-import { AuthProvider } from './context/AuthContext.jsx';
+import AdminRoutes from './routes/AdminRoutes.jsx';
+import { AdminAuthProvider } from './context/AdminAuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 
 function AdminApp() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <AdminAuthProvider>
         
-        <AppRoutes />
+        <AdminRoutes />
         
         <Toaster 
           position="bottom-right"
@@ -41,7 +41,7 @@ function AdminApp() {
           }}
         />
         
-      </AuthProvider>
+      </AdminAuthProvider>
     </BrowserRouter>
   );
 }

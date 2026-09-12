@@ -3,11 +3,11 @@
 
 import React, { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext.jsx';
+import { AdminAuthContext } from '../context/AdminAuthContext.jsx';
 import Loader from '../components/common/Loader.jsx';
 
 const AdminRoute = ({ children }) => {
-  const { user, token, loading } = useContext(AuthContext);
+  const { user, token, loading } = useContext(AdminAuthContext);
   const location = useLocation();
 
   if (loading) {

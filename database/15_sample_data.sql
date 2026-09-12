@@ -22,7 +22,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- 1. Insert Users (Passwords are plain text for sample illustration; in real app, these are hashed like bcrypt)
 INSERT INTO users (user_id, first_name, last_name, email, phone, password, role, is_active) VALUES
-(1, 'Admin', 'User', 'admin@framewala.com', '9876543210', 'adminpass123', 'admin', TRUE),
+(1, 'Admin', 'User', 'admin@framewala.com', '9876543210', '$2b$10$F.ER12vPYy/xRlw9puR6ourRrV8s9vaGZVAAStz41cgZ7rwfB60WO', 'admin', TRUE),
 (2, 'Raj', 'Sharma', 'raj.sharma@example.com', '9876543211', 'rajsecure456', 'customer', TRUE),
 (3, 'Priya', 'Patel', 'priya.patel@example.com', '9876543212', 'priyapass789', 'customer', TRUE);
 
