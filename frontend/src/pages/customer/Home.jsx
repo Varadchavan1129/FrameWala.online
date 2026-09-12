@@ -113,7 +113,7 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-16">
         {/* SHOP BY CATEGORY */}
         <section>
-          <SectionHead title="Shop By Category" to="/products" />
+          <SectionHead title="Shop By Category" />
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3 sm:gap-4">
             {CATEGORY_TILES.map((c) => {
               const Icon = iconMap[c.icon];
@@ -182,20 +182,7 @@ const Home = () => {
         </section>
 
         {/* PROMO BANNERS */}
-        <section className="grid md:grid-cols-3 gap-5">
-          <div className="relative rounded-3xl overflow-hidden bg-warmDark-900 text-cream-50 p-7 min-h-[190px] flex flex-col justify-between">
-            <div><p className="text-2xl font-extrabold">Flat 20% Off</p><p className="text-sm text-cream-200 mt-1">On LED Frames</p></div>
-            <Link to="/products?category=led" className="self-start px-5 py-2.5 bg-gold-400 text-warmDark-900 rounded-full text-xs font-bold hover:bg-gold-100 transition-colors">Shop Now</Link>
-          </div>
-          <div className="relative rounded-3xl overflow-hidden bg-gold-100 text-warmDark-900 p-7 min-h-[190px] flex flex-col justify-between">
-            <div><p className="text-2xl font-extrabold">Perfect Gifts</p><p className="text-sm text-warmDark-600 mt-1">For Every Occasion</p></div>
-            <Link to="/products?category=gifts" className="self-start px-5 py-2.5 bg-warmDark-900 text-cream-50 rounded-full text-xs font-bold hover:bg-brand-700 transition-colors">Explore Gifts</Link>
-          </div>
-          <div className="relative rounded-3xl overflow-hidden bg-cream-200 text-warmDark-900 p-7 min-h-[190px] flex flex-col justify-between border border-warmDark-100">
-            <div><p className="text-2xl font-extrabold">Custom Mugs</p><p className="text-sm text-warmDark-600 mt-1">Starting from {formatINR(399)}</p></div>
-            <Link to="/products?category=gifts" className="self-start px-5 py-2.5 bg-brand-600 text-cream-50 rounded-full text-xs font-bold hover:bg-brand-700 transition-colors">Shop Mugs</Link>
-          </div>
-        </section>
+        {/* Removed unrelated promo banners */}
 
         {/* VALUE PROPS */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
