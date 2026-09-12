@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductCard from '../../components/customer/ProductCard.jsx';
+import SupabaseStatus from '../../components/common/SupabaseStatus.jsx';
 import { PRODUCTS, CATEGORY_TILES, formatINR } from '../../data/mockData.js';
 import {
   FiArrowRight, FiImage, FiZap, FiCoffee, FiTag, FiSquare, FiKey, FiSmartphone,
@@ -211,6 +212,9 @@ const Home = () => {
           ))}
         </section>
       </div>
+
+      {/* Supabase connection status — dev-only badge, hidden in production */}
+      <SupabaseStatus />
     </div>
   );
 };
