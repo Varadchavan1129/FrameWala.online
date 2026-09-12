@@ -1,4 +1,4 @@
-﻿![FrameWala Banner](docs/banner.jpg)
+![FrameWala Banner](docs/banner.jpg)
 
 # FrameWala E-Commerce Website
 
@@ -12,40 +12,78 @@ Welcome to **FrameWala**, a beginner-friendly full-stack e-commerce website desi
 
 ## 📂 Project Structure
 
-This project uses a clean, non-enterprise folder structure ideal for learning and deployment:
-
 ```text
 FrameWala/
 │
-├── frontend/                     # React + Vite + Tailwind CSS Frontend
-│   └── package.json              # Frontend dependencies and build configurations
+├── frontend/                     # Customer Storefront (React + Vite + Tailwind)
+│   └── package.json
 │
-├── backend/                      # Node.js + Express.js API Backend
-│   ├── package.json              # Backend dependencies
-│   ├── server.js                 # API server entrypoint (Express setup)
-│   └── .env.example              # Template for environment configuration
+├── admin-frontend/               # Admin Portal — standalone React + Vite app
+│   └── package.json
 │
-├── database/                     # MySQL Relational Database Scripts
-│   ├── 01_create_database.sql   # Creates database and switches context
-│   ├── 02_users.sql             # Users table schema
-│   ├── 03_categories.sql        # Product Categories table schema
-│   ├── 04_products.sql          # Products table schema
-│   ├── 05_product_images.sql    # Product multi-images schema
-│   ├── 06_addresses.sql         # Addresses table schema
-│   ├── 07_cart.sql              # Active shopping carts schema
-│   ├── 08_cart_items.sql        # Items within shopping carts schema
-│   ├── 09_wishlist.sql          # Wishlist/Favorites schema
-│   ├── 10_orders.sql            # Core checkout orders schema
-│   ├── 11_order_items.sql       # Purchase transaction item logs schema
-│   ├── 12_payments.sql          # Razorpay/Payment transactions schema
-│   ├── 13_shipments.sql         # Shipment tracking logs schema
-│   ├── 14_reviews.sql           # Ratings and customer reviews schema
-│   └── 15_sample_data.sql       # Seeding file containing test data
+├── backend/                      # Node.js + Express.js REST API
+│   ├── src/
+│   │   ├── admin/                # Admin-only routes, controllers, middleware
+│   │   ├── routes/               # Public/customer routes
+│   │   └── ...
+│   └── .env
 │
-└── README.md                     # Project blueprint and database documentation (This file)
+├── database/                     # MySQL schema and seed scripts
+└── README.md
 ```
 
 ---
+
+## 🚀 Local Development
+
+### 1. Backend API
+```bash
+cd backend
+npm install
+npm run dev
+# Runs on: http://localhost:5000
+```
+
+### 2. Customer Storefront
+```bash
+cd frontend
+npm install
+npm run dev
+# Runs on: http://localhost:3000
+```
+
+### 3. Admin Portal
+```bash
+cd admin-frontend
+npm install
+npm run dev
+# Runs on: http://localhost:5174
+# Login at: http://localhost:5174/login
+```
+
+**Admin credentials:**
+- Email: `admin@framewala.com`
+- Password: `FrameWala@123`
+
+---
+
+## 🏗️ Production Builds
+
+```bash
+# Customer frontend
+cd frontend && npm run build
+
+# Admin frontend
+cd ../admin-frontend && npm run build
+
+# Backend (no build step needed — Node.js ESM)
+```
+
+---
+
+## 📊 Database Design (ER Diagram)
+
+Below is the Entity-Relationship (ER) diagram representing how the tables in the `framewala_db` database relate to one another:
 
 ## 📊 Database Design (ER Diagram)
 
