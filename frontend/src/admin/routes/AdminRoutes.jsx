@@ -7,14 +7,14 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminLayout from '../layouts/AdminLayout.jsx';
 import AdminRoute from './AdminRoute.jsx';
 
-import Dashboard from '../pages/admin/Dashboard.jsx';
-import Orders from '../pages/admin/Orders.jsx';
-import Products from '../pages/admin/Products.jsx';
-import Inventory from '../pages/admin/Inventory.jsx';
-import Categories from '../pages/admin/Categories.jsx';
-import Customers from '../pages/admin/Customers.jsx';
-import Reviews from '../pages/admin/Reviews.jsx';
-import Login from '../pages/admin/Login.jsx';
+import Dashboard from '../pages/Dashboard.jsx';
+import Orders from '../pages/Orders.jsx';
+import Products from '../pages/Products.jsx';
+import Inventory from '../pages/Inventory.jsx';
+import Categories from '../pages/Categories.jsx';
+import Customers from '../pages/Customers.jsx';
+import Reviews from '../pages/Reviews.jsx';
+import Login from '../pages/Login.jsx';
 
 const AdminRoutes = () => {
   return (

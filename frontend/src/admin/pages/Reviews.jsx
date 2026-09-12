@@ -2,8 +2,8 @@
 // Admin ratings and reviews moderation panel
 
 import React, { useState, useEffect } from 'react';
-import { getProducts } from '../../services/productService.js';
-import { getProductReviews } from '../../services/reviewService.js';
+import { getProducts } from '../services/productService.js';
+import { getProductReviews } from '../services/reviewService.js';
 import Loader from '../../components/common/Loader.jsx';
 import { FiStar, FiMessageSquare } from 'react-icons/fi';
 import toast from 'react-hot-toast';

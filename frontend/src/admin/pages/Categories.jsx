@@ -2,7 +2,7 @@
 // Admin categories management dashboard
 
 import React, { useState, useEffect } from 'react';
-import { getCategories, createCategory, updateCategory, deleteCategory } from '../../services/categoryService.js';
+import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService.js';
 import Button from '../../components/common/Button.jsx';
 import Loader from '../../components/common/Loader.jsx';
 import { FiPlus, FiEdit2, FiTrash2, FiLayers } from 'react-icons/fi';

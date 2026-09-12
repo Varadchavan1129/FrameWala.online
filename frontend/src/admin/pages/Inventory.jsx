@@ -2,7 +2,7 @@
 // Admin Inventory and stock alerts panel
 
 import React, { useState, useEffect } from 'react';
-import { getProducts, updateProduct } from '../../services/productService.js';
+import { getProducts, updateProduct } from '../services/productService.js';
 import Loader from '../../components/common/Loader.jsx';
 import Button from '../../components/common/Button.jsx';
 import { FiDatabase, FiAlertCircle } from 'react-icons/fi';

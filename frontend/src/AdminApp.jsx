@@ -3,8 +3,8 @@
 
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import AdminRoutes from './routes/AdminRoutes.jsx';
-import { AdminAuthProvider } from './context/AdminAuthContext.jsx';
+import AdminRoutes from './admin/routes/AdminRoutes.jsx';
+import { AdminAuthProvider } from './admin/context/AdminAuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 
 function AdminApp() {

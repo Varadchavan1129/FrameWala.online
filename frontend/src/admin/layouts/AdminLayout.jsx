@@ -3,7 +3,7 @@
 
 import React, { useContext } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
-import Sidebar from '../components/admin/Sidebar.jsx';
+import Sidebar from '../components/Sidebar.jsx';
 import { AdminAuthContext } from '../context/AdminAuthContext.jsx';
 import { FiBell, FiUser, FiLogOut } from 'react-icons/fi';
 

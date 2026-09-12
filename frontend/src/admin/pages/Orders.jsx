@@ -2,7 +2,7 @@
 // Admin checkout orders tracker and status manager
 
 import React, { useState, useEffect } from 'react';
-import { getOrders, updateOrderStatus, getOrderById } from '../../services/orderService.js';
+import { getOrders, updateOrderStatus, getOrderById } from '../services/orderService.js';
 import Loader from '../../components/common/Loader.jsx';
 import Button from '../../components/common/Button.jsx';
 import { FiTrendingUp, FiEye, FiEdit2, FiGift } from 'react-icons/fi';

@@ -2,7 +2,7 @@
 // Admin customers management dashboard
 
 import React, { useState, useEffect } from 'react';
-import { getOrders } from '../../services/orderService.js';
+import { getOrders } from '../services/orderService.js';
 import Loader from '../../components/common/Loader.jsx';
 import { FiUsers } from 'react-icons/fi';
 import toast from 'react-hot-toast';

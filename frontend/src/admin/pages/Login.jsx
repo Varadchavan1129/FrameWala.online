@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '../../context/AdminAuthContext.jsx';
+import { useAdminAuth } from '../../admin/context/AdminAuthContext.jsx';
 import Button from '../../components/common/Button.jsx';
 import toast from 'react-hot-toast';
 

@@ -2,8 +2,8 @@
 // Admin product catalog CRUD panel with filters, multi-file uploads, and status parameters
 
 import React, { useState, useEffect } from 'react';
-import { getProducts, createProduct, updateProduct, deleteProduct, uploadImages } from '../../services/productService.js';
-import { getCategories } from '../../services/categoryService.js';
+import { getProducts, createProduct, updateProduct, deleteProduct, uploadImages } from '../services/productService.js';
+import { getCategories } from '../services/categoryService.js';
 import Button from '../../components/common/Button.jsx';
 import Loader from '../../components/common/Loader.jsx';
 import { FiPlus, FiEdit2, FiTrash2, FiFolderPlus, FiImage, FiX, FiSliders, FiEye, FiEyeOff } from 'react-icons/fi';

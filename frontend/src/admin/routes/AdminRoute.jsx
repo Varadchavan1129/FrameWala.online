@@ -4,7 +4,7 @@
 import React, { useContext } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { AdminAuthContext } from '../context/AdminAuthContext.jsx';
-import Loader from '../components/common/Loader.jsx';
+import Loader from '../../components/common/Loader.jsx';
 
 const AdminRoute = ({ children }) => {
   const { user, token, loading } = useContext(AdminAuthContext);

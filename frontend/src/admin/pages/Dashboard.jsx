@@ -3,9 +3,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getProducts } from '../../services/productService.js';
-import { getOrders } from '../../services/orderService.js';
-import { getCategories } from '../../services/categoryService.js';
+import { getProducts } from '../services/productService.js';
+import { getOrders } from '../services/orderService.js';
+import { getCategories } from '../services/categoryService.js';
 import Loader from '../../components/common/Loader.jsx';
 import { FiBox, FiUsers, FiTrendingUp, FiCheckCircle, FiClock, FiDollarSign } from 'react-icons/fi';
 
