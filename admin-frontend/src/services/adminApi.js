@@ -1,24 +1,29 @@
 // adminApi.js
-// Axios instance for Admin portal — all requests target /api/admin on the backend
+// Axios instance for the Admin portal.
+// In development: Vite proxies /api → http://localhost:5000, so no CORS.
+// In production: set VITE_API_URL to the deployed backend base URL.
 
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000') + '/api/admin';
+// Use relative path in dev (Vite proxy handles it).
+// In production, VITE_API_URL must be set (e.g. https://api.framewala.com).
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/admin`
+  : '/api/admin';
 
 const adminApi = axios.create({
-  baseURL: BASE,
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: false,
 });
 
-const TOKEN_KEY = 'admin_token';
-const USER_KEY  = 'admin_user';
-const LOGIN_PATH = '/login'; // root-relative in the standalone admin app
+const TOKEN_KEY  = 'admin_token';
+const USER_KEY   = 'admin_user';
+const LOGIN_PATH = '/login';
 
-// ── Request interceptor: attach JWT ──────────────────────────────────────────
+// ── Request: attach JWT ───────────────────────────────────────────────────────
 adminApi.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -30,27 +35,27 @@ adminApi.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor: handle errors centrally ────────────────────────────
+// ── Response: central error handling ─────────────────────────────────────────
 adminApi.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      // Network-level failure (backend not reachable, CORS preflight blocked, etc.)
+      // True network failure / backend not reachable
       toast.error('Cannot reach the server. Make sure the backend is running on port 5000.');
       return Promise.reject(error);
     }
 
-    const { status, data } = error.response;
+    const { status } = error.response;
 
     if (status === 401) {
-      // Only auto-redirect if NOT already on the login page
+      // If not on login page, clear session and redirect
       if (window.location.pathname !== LOGIN_PATH) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         toast.error('Session expired. Please log in again.');
         setTimeout(() => { window.location.href = LOGIN_PATH; }, 1000);
       }
-      // Do NOT show a generic toast here — the login page handles its own messaging
+      // On the login page: let the context handle the 401 message (no toast here)
       return Promise.reject(error);
     }
 
@@ -65,7 +70,7 @@ adminApi.interceptors.response.use(
     }
 
     if (status === 400) {
-      // Validation errors — let the caller handle them so we don't double-toast
+      // Let the caller handle 400 — context will show a targeted message
       return Promise.reject(error);
     }
 

@@ -28,18 +28,7 @@ const app = express();
 
 // Standard middlewares
 app.use(helmet({ crossOriginResourcePolicy: false }));
-
-// CORS — allow the customer storefront and admin portal
-app.use(cors({
-  origin: [
-    'http://localhost:3000',   // Customer frontend
-    'http://localhost:5173',   // Customer frontend (vite default)
-    'http://localhost:5174',   // Admin frontend
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+app.use(cors()); // Allow all origins (Vite proxy is used in dev; restrict in production via env)
 
 app.use(morgan('dev'));
 app.use(express.json());
