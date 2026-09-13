@@ -1,10 +1,13 @@
 // Home.jsx — FrameWala homepage matching the reference design.
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import { PRODUCTS, CATEGORY_TILES, formatINR } from '../../data/mockData.js';
+import SupabaseStatus from '../../components/common/SupabaseStatus.jsx';
+import { formatINR } from '../../utils/formatters.js';
+import { getProducts } from '../../services/productService.js';
+import { getCategories } from '../../services/categoryService.js';
 import {
   FiArrowRight, FiImage, FiZap, FiCoffee, FiTag, FiSquare, FiKey, FiSmartphone,
   FiGift, FiCheckCircle, FiStar, FiShield, FiHeadphones, FiUpload, FiSliders,
@@ -31,8 +34,85 @@ const SectionHead = ({ eyebrow, title, to }) => (
 );
 
 const Home = () => {
-  const bestSellers = PRODUCTS.slice(0, 5);
-  const newArrivals = PRODUCTS.slice(5, 10);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [prodRes, catRes] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+        
+        const mappedProducts = (prodRes.data?.products || prodRes.products || []).map(p => ({
+          id: p.product_id,
+          name: p.product_name,
+          subtitle: p.description,
+          price: p.price,
+          mrp: p.price * 1.2, // Mock MRP
+          primary_image: p.primary_image || '/api/images/products/product_01.jpg',
+          rating: '4.8', // Mock rating
+          review_count: 120 // Mock review count
+        }));
+
+        const mappedCategories = (catRes.data?.categories || catRes.categories || []).map(c => ({
+          id: c.category_id,
+          name: c.category_name,
+          label: c.category_name,
+          icon: 'image'
+        }));
+
+        setProducts(mappedProducts);
+        setCategories(mappedCategories);
+      } catch (err) {
+        console.error("Backend API Error:", err);
+        setError(err.message || "Failed to load data from Backend API.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] pb-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-700"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] pb-4">
+        <div className="bg-red-50 border border-red-200 text-red-600 p-8 rounded-2xl shadow-sm text-center max-w-md mx-auto">
+          <h2 className="text-xl font-bold mb-2">Error Loading Data</h2>
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isEmpty = products.length === 0 && categories.length === 0;
+  if (isEmpty) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] pb-4">
+        <div className="bg-cream-50 border border-warmDark-200 text-warmDark-600 p-8 rounded-2xl shadow-sm text-center max-w-md mx-auto">
+          <h2 className="text-xl font-bold mb-2">No Data Available</h2>
+          <p className="text-sm">We couldn't find any products or categories.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const bestSellers = products.slice(0, 5);
+  const newArrivals = products.slice(5, 10);
 
   return (
     <div className="pb-4">
@@ -114,14 +194,14 @@ const Home = () => {
         <section>
           <SectionHead title="Shop By Category" />
           <div className="grid grid-cols-4 md:grid-cols-8 gap-3 sm:gap-4">
-            {CATEGORY_TILES.map((c) => {
-              const Icon = iconMap[c.icon];
+            {categories.map((c) => {
+              const Icon = iconMap[c.icon] || FiImage;
               return (
                 <Link key={c.id} to={`/products?category=${c.id}`} className="group flex flex-col items-center gap-2 text-center" data-testid={`category-${c.id}`}>
                   <div className="w-full aspect-square rounded-2xl bg-cream-200/70 group-hover:bg-gold-100 border border-warmDark-100/60 flex items-center justify-center transition-colors">
                     <Icon className="w-7 h-7 sm:w-8 sm:h-8 text-brand-700" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-semibold text-warmDark-800 group-hover:text-brand-600 transition-colors">{c.label}</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-warmDark-800 group-hover:text-brand-600 transition-colors">{c.name || c.label}</span>
                 </Link>
               );
             })}
@@ -198,6 +278,9 @@ const Home = () => {
           ))}
         </section>
       </div>
+
+      {/* Supabase connection status — dev-only badge, hidden in production */}
+      <SupabaseStatus />
     </div>
   );
 };

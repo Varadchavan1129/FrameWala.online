@@ -10,12 +10,13 @@ dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
+// All routes are registered in app.js — server.js only starts the HTTP listener
 const server = app.listen(PORT, async () => {
   console.log(`================================================`);
   console.log(`🚀 FrameWala API Server running on port ${PORT}`);
   console.log(`⚙️  Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`================================================`);
-  
+
   // Execute automatic database tables migrations
   await runMigrations();
 

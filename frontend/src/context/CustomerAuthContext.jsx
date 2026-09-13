@@ -14,24 +14,37 @@ export const CustomerAuthProvider = ({ children }) => {
 
   // Initialize and load user profile if a token exists
   useEffect(() => {
+    let isMounted = true;
     const initializeAuth = async () => {
-      if (token) {
+      const storedToken = localStorage.getItem('customer_token');
+      if (storedToken) {
         try {
           const res = await fetchProfile();
-          if (res.success && res.data.user.role === 'customer') {
-            setUser(res.data.user);
+          if (res?.success && res.data?.user?.role === 'customer') {
+            if (isMounted) setUser(res.data.user);
           } else {
-            handleLogout();
+            localStorage.removeItem('customer_token');
+            localStorage.removeItem('customer_user');
+            if (isMounted) {
+              setToken(null);
+              setUser(null);
+            }
           }
         } catch (error) {
-          console.error('Failed to load customer profile:', error.message);
-          handleLogout();
+          // Token expired or invalid — clear state silently
+          localStorage.removeItem('customer_token');
+          localStorage.removeItem('customer_user');
+          if (isMounted) {
+            setToken(null);
+            setUser(null);
+          }
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     };
 
     initializeAuth();
+    return () => { isMounted = false; };
   }, [token]);
 
   // Handle user login
@@ -50,6 +63,7 @@ export const CustomerAuthProvider = ({ children }) => {
 
         localStorage.setItem('customer_token', authToken);
         localStorage.setItem('customer_user', JSON.stringify(loggedUser));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'customer_token' }));
         setToken(authToken);
         setUser(loggedUser);
         toast.success(`Welcome back, ${loggedUser.first_name}!`);
@@ -74,6 +88,7 @@ export const CustomerAuthProvider = ({ children }) => {
         const { user: registeredUser, token: authToken } = res.data;
         localStorage.setItem('customer_token', authToken);
         localStorage.setItem('customer_user', JSON.stringify(registeredUser));
+        window.dispatchEvent(new StorageEvent('storage', { key: 'customer_token' }));
         setToken(authToken);
         setUser(registeredUser);
         toast.success(`Account created! Welcome, ${registeredUser.first_name}!`);
@@ -111,6 +126,7 @@ export const CustomerAuthProvider = ({ children }) => {
   const handleLogout = () => {
     localStorage.removeItem('customer_token');
     localStorage.removeItem('customer_user');
+    window.dispatchEvent(new StorageEvent('storage', { key: 'customer_token' }));
     setToken(null);
     setUser(null);
     toast.success('Logged out successfully.');

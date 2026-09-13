@@ -1,15 +1,40 @@
 // Wishlist.jsx — saved products grid.
 
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import { getProductById } from '../../data/mockData.js';
-import { FiHeart } from 'react-icons/fi';
+import { getProductById } from '../../services/productService.js';
+import { FiHeart, FiLoader } from 'react-icons/fi';
 
 const Wishlist = () => {
   const { wishlistItems } = useContext(WishlistContext);
-  const products = wishlistItems.map((i) => getProductById(i.id)).filter(Boolean);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWishlistProducts = async () => {
+      setLoading(true);
+      try {
+        const productPromises = wishlistItems.map((i) => getProductById(i.id));
+        const responses = await Promise.all(productPromises);
+        setProducts(responses.map(res => res.data).filter(Boolean));
+      } catch (error) {
+        console.error("Failed to load wishlist products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWishlistProducts();
+  }, [wishlistItems]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-20 text-brand-600">
+        <FiLoader className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (products.length === 0) {
     return (
@@ -28,7 +53,7 @@ const Wishlist = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <h1 className="text-3xl font-extrabold tracking-tight text-warmDark-900">Your Wishlist</h1>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-        {products.map((p) => <ProductCard key={p.id} product={p} />)}
+        {products.map((p) => <ProductCard key={p.product_id || p.id} product={p} />)}
       </div>
     </div>
   );

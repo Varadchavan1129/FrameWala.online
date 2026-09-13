@@ -1,33 +1,56 @@
 // CustomFrame.jsx — upload photo + frame selection UI (FrameVision AI placeholder).
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
-import { PRODUCTS, FINISHES, SIZES, formatINR } from '../../data/mockData.js';
+import { FINISHES, SIZES } from '../../constants/productConstants.js';
+import { formatINR } from '../../utils/formatters.js';
+import { getProducts } from '../../services/productService.js';
 import toast from 'react-hot-toast';
 import { FiUpload, FiZap, FiCheck, FiRefreshCw, FiShoppingCart, FiImage } from 'react-icons/fi';
 
-const framesForCustom = PRODUCTS.filter((p) => p.is_customizable).slice(0, 6);
-const samples = [
-  { label: 'Family', url: '/images/products/product_01.jpg' },
-  { label: 'Couple', url: '/images/products/product_08.jpg' },
-  { label: 'Baby', url: '/images/products/product_05.jpg' },
-  { label: 'Wedding', url: '/images/products/product_09.jpg' },
-];
 
 const CustomFrame = () => {
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
 
-  const [photo, setPhoto] = useState('/images/products/product_01.jpg');
-  const [frame, setFrame] = useState(framesForCustom[0]);
+  const [samples, setSamples] = useState([]);
+  const [framesForCustom, setFramesForCustom] = useState([]);
+  const [photo, setPhoto] = useState('/api/images/products/product_01.jpg');
+  const [frame, setFrame] = useState(null);
   const [finishIdx, setFinishIdx] = useState(0);
   const [sizeIdx, setSizeIdx] = useState(1);
   const [processing, setProcessing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getProducts().then(res => {
+      const prods = res.data.products;
+      const frames = prods.filter(p => p.is_customizable).slice(0, 6);
+      setFramesForCustom(frames);
+      if (frames.length > 0) setFrame(frames[0]);
+
+      const familyProd = prods.find(p => p.category_name === 'Family Frames');
+      const coupleProd = prods.find(p => p.category_name === 'Couple Frames');
+      const babyProd = prods.find(p => p.category_name === 'Baby Frames');
+      const weddingProd = prods.find(p => p.category_name === 'Wedding Frames');
+
+      const dynamicSamples = [
+        { label: 'Family', url: familyProd?.primary_image || '/api/images/products/product_01.jpg' },
+        { label: 'Couple', url: coupleProd?.primary_image || '/api/images/products/product_08.jpg' },
+        { label: 'Baby', url: babyProd?.primary_image || '/api/images/products/product_05.jpg' },
+        { label: 'Wedding', url: weddingProd?.primary_image || '/api/images/products/product_09.jpg' },
+      ];
+      setSamples(dynamicSamples);
+      if (dynamicSamples.length > 0) setPhoto(dynamicSamples[0].url);
+
+      setLoading(false);
+    });
+  }, []);
 
   const finish = FINISHES[finishIdx];
-  const price = frame.price + SIZES[sizeIdx].delta;
+  const price = frame ? Number(frame.price) + SIZES[sizeIdx].delta : 0;
 
   const onUpload = (e) => {
     const file = e.target.files?.[0];
@@ -44,10 +67,15 @@ const CustomFrame = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
-    addToCart(frame, 1, { price, size: SIZES[sizeIdx].label, finish: finish.name, image: frame.primary_image, custom_image: photo });
+  const handleAdd = async () => {
+    return await addToCart(frame, 1, { price, size: SIZES[sizeIdx].label, finish: finish.name, image: frame.primary_image, custom_image: photo });
   };
-  const handleBuy = () => { handleAdd(); navigate('/checkout'); };
+  const handleBuy = async () => { 
+    const ok = await handleAdd(); 
+    if (ok) navigate('/checkout'); 
+  };
+
+  if (loading || !frame) return <div className="py-20 flex justify-center text-brand-600"><FiZap className="w-8 h-8 animate-pulse" /></div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">

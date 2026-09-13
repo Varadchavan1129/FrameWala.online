@@ -1,7 +1,7 @@
 // Login.jsx — local (mock) sign in.
 import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext.jsx';
+import { CustomerAuthContext as AuthContext } from '../../context/CustomerAuthContext.jsx';
 import { FiMail, FiLock, FiLogIn } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -12,7 +12,12 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  useEffect(() => { if (user) navigate(location.state?.from?.pathname || '/', { replace: true }); }, [user]);
+  const searchParams = new URLSearchParams(location.search);
+  const redirectUrl = location.state?.from?.pathname || searchParams.get('redirect') || '/';
+
+  useEffect(() => { 
+    if (user) navigate(redirectUrl, { replace: true }); 
+  }, [user, redirectUrl]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -34,7 +39,7 @@ const Login = () => {
           <div className="relative"><FiLock className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" /><input className={input} type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required data-testid="login-password" /></div>
           <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm" data-testid="login-submit"><FiLogIn className="w-4 h-4" /> Login</button>
         </form>
-        <p className="text-center text-xs text-warmDark-500">Don't have an account? <Link to="/register" className="text-brand-600 font-bold hover:underline">Register</Link></p>
+        <p className="text-center text-xs text-warmDark-500">Don't have an account? <Link to={`/register${location.search}`} className="text-brand-600 font-bold hover:underline">Register</Link></p>
       </div>
     </div>
   );
