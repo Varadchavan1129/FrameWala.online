@@ -1,12 +1,12 @@
 // ProductDetails.jsx — gallery, size/finish/qty options, Buy Now / Add to Cart, reviews.
 
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import { getProductById, getReviews, getRelated, formatINR } from '../../data/mockData.js';
+import { getProductById, getProducts } from '../../services/productService.js';
 import {
   FiHeart, FiShoppingCart, FiStar, FiChevronRight, FiChevronLeft, FiTruck,
   FiRefreshCw, FiShield, FiImage, FiCheckCircle, FiZap,
@@ -14,22 +14,137 @@ import {
 
 const highlightIcon = { wood: FiCheckCircle, print: FiImage, glass: FiShield, clean: FiZap };
 
+// Fallback constants since MySQL doesn't store these yet
+const FINISHES = [
+  { name: 'Dark Walnut', hex: '#4A2E1C' },
+  { name: 'Natural Oak', hex: '#C8A06A' },
+  { name: 'Matte White', hex: '#F3F0E9' },
+  { name: 'Classic Black', hex: '#191512' }
+];
+
+const SIZES = [
+  { label: '6 x 4 inch', delta: -100 },
+  { label: '8 x 6 inch', delta: 0 },
+  { label: '10 x 8 inch', delta: 200 }
+];
+
+const HIGHLIGHTS = [
+  { icon: 'wood', title: 'Premium Wooden', desc: 'High quality wood' },
+  { icon: 'print', title: 'High Definition Print', desc: 'Vibrant & long lasting' }
+];
+
+const formatINR = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
   const { toggleWishlist, isInWishlist } = useContext(WishlistContext);
 
-  const product = getProductById(id);
-  const reviews = useMemo(() => (product ? getReviews(product.id) : []), [product]);
-  const related = useMemo(() => (product ? getRelated(product) : []), [product]);
+  const [product, setProduct] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchProduct = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await getProductById(id);
+        const productData = res?.data?.product || res?.product || res;
+        if (!productData || (!productData.product_id && !productData.id)) {
+          throw new Error('Product not found');
+        }
+
+        const rawPrice = parseFloat(productData.price) || 0;
+        const mappedProduct = {
+          ...productData,
+          id: productData.product_id || productData.id,
+          name: productData.product_name || productData.name || 'Photo Frame',
+          subtitle: productData.description || '',
+          category_name: productData.category_name || '',
+          price: rawPrice,
+          mrp: rawPrice * 1.2,
+          rating: productData.average_rating && parseFloat(productData.average_rating) > 0 ? String(productData.average_rating) : '4.8',
+          review_count: productData.total_reviews || 120,
+          primary_image: productData.images?.find(img => img.is_primary)?.image_url || productData.images?.[0]?.image_url || productData.primary_image || '/images/products/product_01.jpg',
+          images: (productData.images && productData.images.length > 0)
+            ? productData.images.map(img => typeof img === 'string' ? img : img.image_url)
+            : [productData.primary_image || '/images/products/product_01.jpg'],
+          sizes: SIZES,
+          finishes: FINISHES,
+          highlights: HIGHLIGHTS
+        };
+
+        if (isMounted) {
+          setProduct(mappedProduct);
+        }
+
+        // Fetch related products
+        try {
+          const allRes = await getProducts();
+          const allProducts = allRes?.data?.products || allRes?.products || [];
+          if (isMounted) {
+            setRelated(allProducts.slice(0, 4).map(p => ({
+              ...p,
+              id: p.product_id || p.id,
+              name: p.product_name || p.name,
+              primary_image: p.primary_image || '/images/products/product_01.jpg',
+              price: parseFloat(p.price) || 0,
+              mrp: (parseFloat(p.price) || 0) * 1.2,
+              rating: '4.8',
+              review_count: 120,
+            })));
+          }
+        } catch (relatedErr) {
+          console.error('Failed to load related products', relatedErr);
+        }
+      } catch (err) {
+        console.error('Failed to load product', err);
+        if (isMounted) {
+          setError(true);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (id) {
+      fetchProduct();
+    }
+    return () => { isMounted = false; };
+  }, [id]);
+
+  const reviews = useMemo(() => {
+    if (!product) return [];
+    return [
+      { id: 1, name: 'Rahul Sharma', rating: 5, date: '12 Sep 2026', text: 'Excellent frame quality!' },
+      { id: 2, name: 'Pooja Deshmukh', rating: 4, date: '10 Sep 2026', text: 'Beautiful finish.' }
+    ];
+  }, [product]);
 
   const [imgIndex, setImgIndex] = useState(0);
   const [sizeIdx, setSizeIdx] = useState(1);
   const [finishIdx, setFinishIdx] = useState(0);
   const [qty, setQty] = useState(1);
 
-  if (!product) {
+  const price = product ? (product.price || 0) + (product.sizes?.[sizeIdx]?.delta || 0) : 0;
+  const favorited = product ? isInWishlist(product.id) : false;
+  const options = () => product ? { price, size: product.sizes?.[sizeIdx]?.label, finish: product.finishes?.[finishIdx]?.name, image: product.primary_image } : {};
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh] pb-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-700"></div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center space-y-4">
         <p className="text-warmDark-500 font-semibold">Product not found.</p>
@@ -38,12 +153,15 @@ const ProductDetails = () => {
     );
   }
 
-  const price = product.price + product.sizes[sizeIdx].delta;
-  const favorited = isInWishlist(product.id);
-  const options = () => ({ price, size: product.sizes[sizeIdx].label, finish: product.finishes[finishIdx].name, image: product.primary_image });
-
-  const handleAdd = () => addToCart(product, qty, options());
-  const handleBuyNow = () => { addToCart(product, qty, options()); navigate('/checkout'); };
+  const handleAdd = async () => {
+    await addToCart(product, qty, options());
+  };
+  const handleBuyNow = async () => {
+    const success = await addToCart(product, qty, options());
+    if (success) {
+      navigate('/checkout');
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-12">

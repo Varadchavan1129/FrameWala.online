@@ -14,7 +14,11 @@ import { sendSuccess, sendError } from '../utils/responseHelper.js';
  */
 export const placeOrder = async (req, res, next) => {
   const userId = req.user.user_id;
-  const { address_id, payment_method = 'COD' } = req.body;
+  const { address_id, payment_method } = req.body;
+
+  if (payment_method === 'COD') {
+    return res.status(400).json(sendError('Cash on Delivery is not supported. Please use a prepaid method.'));
+  }
 
   if (!address_id) {
     return res.status(400).json(sendError('Address ID is required.'));
@@ -117,21 +121,12 @@ export const placeOrder = async (req, res, next) => {
       );
     }
 
-    // 6. Create payment logs (Mock Payment)
-    const isPaid = payment_method === 'UPI' || payment_method === 'Card';
+    // 6. Create payment logs (Prepaid pending verification)
     await connection.query(
       `INSERT INTO payments (order_id, payment_method, razorpay_payment_id, payment_status) 
        VALUES (?, ?, ?, ?)`,
-      [orderId, payment_method, isPaid ? `pay_mock_${Date.now()}` : null, isPaid ? 'completed' : 'pending']
+      [orderId, payment_method, null, 'pending']
     );
-
-    if (isPaid) {
-      // Update payment status on order
-      await connection.query(
-        "UPDATE orders SET payment_status = 'paid' WHERE order_id = ?",
-        [orderId]
-      );
-    }
 
     // 7. Create shipment logs (Mock Shipment setup)
     const expectedDelivery = new Date();
@@ -153,7 +148,10 @@ export const placeOrder = async (req, res, next) => {
     connection.release();
 
     const orderDetails = await Order.findById(orderId);
-    res.status(201).json(sendSuccess('Order placed successfully.', { order: orderDetails }));
+    res.status(201).json(sendSuccess('Order placed successfully.', { 
+      order: orderDetails,
+      admin_whatsapp: process.env.ADMIN_WHATSAPP_NUMBER
+    }));
   } catch (error) {
     // Rollback changes on errors
     await connection.rollback();

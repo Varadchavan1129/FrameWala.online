@@ -14,20 +14,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Guard: fail loudly at startup if credentials are missing.
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error(
-    '[FrameWala] Supabase configuration is missing.\n' +
-    'Please ensure the following variables are set in frontend/.env.local:\n' +
-    '  VITE_SUPABASE_URL\n' +
-    '  VITE_SUPABASE_PUBLISHABLE_KEY\n' +
-    'Do NOT use the service_role key here.'
-  );
-}
-
-// Singleton Supabase client — import this wherever Supabase is needed.
-// Never instantiate createClient() more than once.
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Instantiate Supabase client only if credentials are provided in env
+export const supabase = (supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 /**
  * testSupabaseConnection
@@ -36,6 +26,12 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
  * Never exposes credentials in error messages.
  */
 export async function testSupabaseConnection() {
+  if (!supabase) {
+    return {
+      success: false,
+      message: 'Supabase credentials not configured.',
+    };
+  }
   try {
     const { data, error } = await supabase
       .from('connection_test')

@@ -2,11 +2,11 @@
 // User Profile details and Shipping addresses management dashboard
 
 import React, { useState, useEffect, useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext.jsx';
-import { getAddresses, deleteAddress, changePassword } from '../../services/authService.js';
+import { CustomerAuthContext as AuthContext } from '../../context/CustomerAuthContext.jsx';
+import { getAddresses, deleteAddress, changePassword, addAddress } from '../../services/authService.js';
 import Button from '../../components/common/Button.jsx';
 import Loader from '../../components/common/Loader.jsx';
-import { FiUser, FiMapPin, FiLock, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiUser, FiMapPin, FiLock, FiTrash2, FiEdit2, FiPlus, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
@@ -14,6 +14,11 @@ const Profile = () => {
 
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Add Address Form States
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({ full_name: '', phone: '', address_line: '', city: '', state: '', pincode: '' });
+  const [addingAddress, setAddingAddress] = useState(false);
 
   // Edit Profile Form States
   const [firstName, setFirstName] = useState(user?.first_name || '');
@@ -107,14 +112,40 @@ const Profile = () => {
     }
   };
 
+  const handleAddAddressSubmit = async (e) => {
+    e.preventDefault();
+    const required = ['full_name', 'phone', 'address_line', 'city', 'state', 'pincode'];
+    if (required.some(k => !addressForm[k]?.trim())) {
+      toast.error('Please fill all delivery details.');
+      return;
+    }
+    
+    try {
+      setAddingAddress(true);
+      const res = await addAddress(addressForm);
+      if (res.success) {
+        toast.success('Address added successfully!');
+        setAddresses(res.data.addresses);
+        setIsAddingAddress(false);
+        setAddressForm({ full_name: '', phone: '', address_line: '', city: '', state: '', pincode: '' });
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add address.');
+    } finally {
+      setAddingAddress(false);
+    }
+  };
+
+  const setAddrKey = (k) => (e) => setAddressForm(f => ({ ...f, [k]: e.target.value }));
+
   if (loading && addresses.length === 0) return <Loader />;
 
   return (
     <div className="space-y-8">
       
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">Your Profile</h1>
-        <p className="text-slate-400 text-sm mt-1">Manage names, passwords, and saved shipping addresses.</p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-warmDark-900">Your Profile</h1>
+        <p className="text-warmDark-500 text-sm mt-1">Manage names, passwords, and saved shipping addresses.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -123,31 +154,31 @@ const Profile = () => {
         <div className="lg:col-span-2 space-y-6">
           
           {/* Edit Profile Form Card */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl space-y-4">
-            <h2 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center space-x-2">
-              <FiUser className="w-5 h-5 text-indigo-500" />
+          <div className="bg-white border border-warmDark-100/60 p-6 rounded-3xl space-y-4 shadow-sm">
+            <h2 className="font-extrabold text-warmDark-900 text-sm border-b border-cream-200 pb-3 flex items-center space-x-2">
+              <FiUser className="w-5 h-5 text-brand-600" />
               <span>Personal Details</span>
             </h2>
 
             <form onSubmit={handleUpdateProfileSubmit} className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">First Name</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">First Name</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Last Name</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                     required
                   />
                 </div>
@@ -155,21 +186,21 @@ const Profile = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Email (Locked)</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">Email (Locked)</label>
                   <input
                     type="email"
                     value={user?.email || ''}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs bg-slate-50 text-slate-400 cursor-not-allowed outline-none"
+                    className="w-full px-3.5 py-2 border border-cream-200 rounded-xl text-xs bg-cream-50 text-warmDark-400 cursor-not-allowed outline-none"
                     disabled
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">Phone Number</label>
                   <input
                     type="text"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                   />
                 </div>
               </div>
@@ -181,41 +212,41 @@ const Profile = () => {
           </div>
 
           {/* Change Password Card */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl space-y-4">
-            <h2 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center space-x-2">
-              <FiLock className="w-5 h-5 text-indigo-500" />
+          <div className="bg-white border border-warmDark-100/60 p-6 rounded-3xl space-y-4 shadow-sm">
+            <h2 className="font-extrabold text-warmDark-900 text-sm border-b border-cream-200 pb-3 flex items-center space-x-2">
+              <FiLock className="w-5 h-5 text-brand-600" />
               <span>Change Password</span>
             </h2>
 
             <form onSubmit={handleChangePasswordSubmit} className="space-y-4 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Current Password</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">Current Password</label>
                   <input
                     type="password"
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">New Password</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">New Password</label>
                   <input
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                     required
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">Confirm New Password</label>
+                  <label className="text-[10px] font-bold text-warmDark-400 uppercase">Confirm New Password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3.5 py-2 border rounded-lg text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white"
                     required
                   />
                 </div>
@@ -230,29 +261,50 @@ const Profile = () => {
         </div>
 
         {/* Right Side Column: Saved Addresses registry */}
-        <div className="lg:col-span-1 bg-white border border-slate-100 p-6 rounded-3xl h-fit space-y-4">
-          <h2 className="font-extrabold text-slate-800 text-sm border-b border-slate-100 pb-3 flex items-center space-x-2">
-            <FiMapPin className="w-5 h-5 text-indigo-500" />
-            <span>Address Book</span>
-          </h2>
+        <div className="lg:col-span-1 bg-white border border-warmDark-100/60 p-6 rounded-3xl h-fit space-y-4 shadow-sm">
+          <div className="border-b border-cream-200 pb-3 flex items-center justify-between">
+            <h2 className="font-extrabold text-warmDark-900 text-sm flex items-center space-x-2">
+              <FiMapPin className="w-5 h-5 text-brand-600" />
+              <span>Address Book</span>
+            </h2>
+            {!isAddingAddress && (
+              <button onClick={() => setIsAddingAddress(true)} className="text-[10px] font-bold text-brand-600 flex items-center gap-1 hover:text-brand-700 focus:outline-none">
+                <FiPlus className="w-3 h-3" /> Add New
+              </button>
+            )}
+          </div>
 
-          {addresses.length === 0 ? (
-            <p className="text-slate-400 text-xs py-4 text-center">No shipping addresses registered.</p>
+          {isAddingAddress ? (
+            <form onSubmit={handleAddAddressSubmit} className="space-y-3 bg-cream-50/50 p-4 border border-cream-200 rounded-2xl">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-bold text-warmDark-900">New Address</h3>
+                <button type="button" onClick={() => setIsAddingAddress(false)} className="text-warmDark-400 hover:text-red-500"><FiX className="w-4 h-4" /></button>
+              </div>
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="Full Name" value={addressForm.full_name} onChange={setAddrKey('full_name')} required />
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="Mobile Number" value={addressForm.phone} onChange={setAddrKey('phone')} required />
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="Street Address" value={addressForm.address_line} onChange={setAddrKey('address_line')} required />
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="City" value={addressForm.city} onChange={setAddrKey('city')} required />
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="State" value={addressForm.state} onChange={setAddrKey('state')} required />
+              <input className="w-full px-3 py-2 border border-warmDark-200 rounded-xl text-xs focus:outline-none focus:border-brand-500 bg-white" placeholder="Pincode" value={addressForm.pincode} onChange={setAddrKey('pincode')} required />
+              <Button type="submit" loading={addingAddress} className="w-full text-xs py-2 mt-2">Save Address</Button>
+            </form>
+          ) : addresses.length === 0 ? (
+            <p className="text-warmDark-500 text-xs py-4 text-center">No shipping addresses registered.</p>
           ) : (
             <div className="space-y-4">
               {addresses.map((addr) => (
                 <div 
                   key={addr.address_id}
-                  className="p-4 bg-slate-50 border border-slate-100 rounded-2xl relative space-y-1 group"
+                  className="p-4 bg-cream-50/50 border border-cream-200 rounded-2xl relative space-y-1 group"
                 >
-                  <span className="font-extrabold text-slate-800 text-sm block">{addr.full_name}</span>
-                  <span className="text-slate-500 text-xs block">{addr.address_line}, {addr.city}, {addr.state} - {addr.pincode}</span>
-                  <span className="text-slate-400 text-[10px] block">Phone: {addr.phone}</span>
+                  <span className="font-extrabold text-warmDark-900 text-sm block">{addr.full_name}</span>
+                  <span className="text-warmDark-600 text-xs block">{addr.address_line}, {addr.city}, {addr.state} - {addr.pincode}</span>
+                  <span className="text-warmDark-500 text-[10px] block">Phone: {addr.phone}</span>
                   
                   {/* Delete address action */}
                   <button
                     onClick={() => handleDeleteAddress(addr.address_id)}
-                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-500 rounded-lg transition-colors focus:outline-none"
+                    className="absolute top-2 right-2 p-1.5 text-warmDark-400 hover:text-red-500 rounded-lg transition-colors focus:outline-none"
                     title="Delete address"
                   >
                     <FiTrash2 className="w-4 h-4" />

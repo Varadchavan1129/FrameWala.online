@@ -3,7 +3,7 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../../context/CartContext.jsx';
-import { formatINR } from '../../data/mockData.js';
+import { formatINR } from '../../utils/formatters.js';
 import { FiTrash2, FiShoppingBag, FiArrowRight, FiMinus, FiPlus } from 'react-icons/fi';
 
 const Cart = () => {

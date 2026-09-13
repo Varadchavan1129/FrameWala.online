@@ -37,6 +37,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static uploaded files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+// Serve database images
+app.use('/api/images', express.static(path.join(process.cwd(), '../database/images')));
+
 // Root route
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'FrameWala Backend Running' });
