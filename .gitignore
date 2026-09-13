@@ -5,3 +5,12 @@ credentials.json
 *.pem
 *.key
 .credentials
+
+# Build and Dependencies
+node_modules/
+dist/
+build/
+
+# Temp Audit files
+*.csv
+PROJECT_FILE_INVENTORY.json
