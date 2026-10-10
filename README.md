@@ -265,3 +265,5 @@ To set up the MySQL database on your local machine:
    USE framewala_db;
    SELECT * FROM products;
    ```
+
+<!-- minor update -->
