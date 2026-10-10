@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import { PRODUCTS, FILTER_CATEGORIES } from '../../data/mockData.js';
+import { FILTER_CATEGORIES } from '../../constants/productConstants.js';
+import { getProducts } from '../../services/productService.js';
 import { FiSliders, FiRefreshCw, FiSearch, FiX } from 'react-icons/fi';
 
 const Products = () => {
@@ -14,15 +15,44 @@ const Products = () => {
   const [customOnly, setCustomOnly] = useState(false);
   const [sort, setSort] = useState(searchParams.get('sort') === 'bestseller' ? 'rating' : 'featured');
   const [mobileFilters, setMobileFilters] = useState(false);
+  
+  const [dbProducts, setDbProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setCategory(searchParams.get('category') || '');
     setSearch(searchParams.get('search') || '');
   }, [searchParams]);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const res = await getProducts();
+        const mapped = (res.data?.products || res.products || []).map(p => ({
+          ...p,
+          id: p.product_id,
+          name: p.product_name,
+          subtitle: p.description,
+          category_name: p.category_name || '',
+          mrp: p.price * 1.2,
+          rating: '4.8',
+          review_count: 120,
+          primary_image: p.primary_image || '/api/images/products/product_01.jpg'
+        }));
+        setDbProducts(mapped);
+      } catch (err) {
+        console.error('Failed to load products', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
   const filtered = useMemo(() => {
-    let list = [...PRODUCTS];
-    if (category) list = list.filter((p) => p.category === category);
+    let list = [...dbProducts];
+    if (category) list = list.filter((p) => p.category === category || String(p.category_id) === String(category));
     if (search) list = list.filter((p) => (p.name + p.subtitle + p.category_name).toLowerCase().includes(search.toLowerCase()));
     list = list.filter((p) => p.price <= maxPrice);
     if (customOnly) list = list.filter((p) => p.is_customizable);
@@ -30,7 +60,7 @@ const Products = () => {
     else if (sort === 'price-high') list.sort((a, b) => b.price - a.price);
     else if (sort === 'rating') list.sort((a, b) => b.rating - a.rating);
     return list;
-  }, [category, search, maxPrice, customOnly, sort]);
+  }, [category, search, maxPrice, customOnly, sort, dbProducts]);
 
   const reset = () => { setCategory(''); setSearch(''); setMaxPrice(2000); setCustomOnly(false); setSort('featured'); setSearchParams({}); };
 

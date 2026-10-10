@@ -1,0 +1,432 @@
+{
+  "orders": [
+    {
+      "order_id": 1,
+      "user_id": 2,
+      "address_id": 1,
+      "total_amount": "1200.00",
+      "order_status": "shipped",
+      "payment_status": "paid",
+      "created_at": "2026-08-02T17:14:52.000Z"
+    },
+    {
+      "order_id": 2,
+      "user_id": 2,
+      "address_id": 1,
+      "total_amount": "500.22",
+      "order_status": "pending",
+      "payment_status": "pending",
+      "created_at": "2026-08-02T17:36:26.000Z"
+    },
+    {
+      "order_id": 3,
+      "user_id": 2,
+      "address_id": 1,
+      "total_amount": "200.00",
+      "order_status": "cancelled",
+      "payment_status": "paid",
+      "created_at": "2026-08-03T06:08:08.000Z"
+    },
+    {
+      "order_id": 4,
+      "user_id": 4,
+      "address_id": 2,
+      "total_amount": "1598.00",
+      "order_status": "pending",
+      "payment_status": "paid",
+      "created_at": "2026-09-13T14:55:38.000Z"
+    },
+    {
+      "order_id": 5,
+      "user_id": 4,
+      "address_id": 3,
+      "total_amount": "1598.00",
+      "order_status": "pending",
+      "payment_status": "paid",
+      "created_at": "2026-09-13T16:34:59.000Z"
+    },
+    {
+      "order_id": 6,
+      "user_id": 4,
+      "address_id": 4,
+      "total_amount": "1598.00",
+      "order_status": "pending",
+      "payment_status": "paid",
+      "created_at": "2026-09-13T16:44:23.000Z"
+    },
+    {
+      "order_id": 7,
+      "user_id": 6,
+      "address_id": 5,
+      "total_amount": "799.00",
+      "order_status": "pending",
+      "payment_status": "pending",
+      "created_at": "2026-09-13T16:44:45.000Z"
+    },
+    {
+      "order_id": 8,
+      "user_id": 7,
+      "address_id": 6,
+      "total_amount": "799.00",
+      "order_status": "pending",
+      "payment_status": "pending",
+      "created_at": "2026-09-13T18:18:26.000Z"
+    },
+    {
+      "order_id": 9,
+      "user_id": 7,
+      "address_id": 6,
+      "total_amount": "799.00",
+      "order_status": "pending",
+      "payment_status": "pending",
+      "created_at": "2026-09-13T18:35:20.000Z"
+    },
+    {
+      "order_id": 10,
+      "user_id": 8,
+      "address_id": 7,
+      "total_amount": "799.00",
+      "order_status": "pending",
+      "payment_status": "pending",
+      "created_at": "2026-10-09T15:31:11.000Z"
+    }
+  ],
+  "order_items": [
+    {
+      "order_item_id": 1,
+      "order_id": 1,
+      "product_id": 2,
+      "quantity": 2,
+      "price": "600.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 2,
+      "order_id": 2,
+      "product_id": 1,
+      "quantity": 1,
+      "price": "500.22",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 3,
+      "order_id": 3,
+      "product_id": 3,
+      "quantity": 1,
+      "price": "200.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 4,
+      "order_id": 4,
+      "product_id": 28,
+      "quantity": 2,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 5,
+      "order_id": 5,
+      "product_id": 28,
+      "quantity": 2,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 6,
+      "order_id": 6,
+      "product_id": 28,
+      "quantity": 2,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 7,
+      "order_id": 7,
+      "product_id": 28,
+      "quantity": 1,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 8,
+      "order_id": 8,
+      "product_id": 28,
+      "quantity": 1,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 9,
+      "order_id": 9,
+      "product_id": 28,
+      "quantity": 1,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    },
+    {
+      "order_item_id": 10,
+      "order_id": 10,
+      "product_id": 28,
+      "quantity": 1,
+      "price": "799.00",
+      "custom_image_url": null,
+      "custom_text": null,
+      "custom_font": null,
+      "custom_font_size": null,
+      "custom_font_color": null,
+      "custom_rotation": null,
+      "custom_scale": null,
+      "custom_position_x": null,
+      "custom_position_y": null
+    }
+  ],
+  "payments": [
+    {
+      "payment_id": 1,
+      "order_id": 1,
+      "payment_method": "COD",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-08-02T17:14:52.000Z"
+    },
+    {
+      "payment_id": 2,
+      "order_id": 2,
+      "payment_method": "COD",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-08-02T17:36:26.000Z"
+    },
+    {
+      "payment_id": 3,
+      "order_id": 3,
+      "payment_method": "Card",
+      "razorpay_payment_id": "pay_mock_1785737288542",
+      "payment_status": "completed",
+      "payment_date": "2026-08-03T06:08:08.000Z"
+    },
+    {
+      "payment_id": 4,
+      "order_id": 4,
+      "payment_method": "Card",
+      "razorpay_payment_id": "pay_mock_1789311338678",
+      "payment_status": "completed",
+      "payment_date": "2026-09-13T14:55:38.000Z"
+    },
+    {
+      "payment_id": 5,
+      "order_id": 5,
+      "payment_method": "Card",
+      "razorpay_payment_id": "pay_mock_1789317299103",
+      "payment_status": "completed",
+      "payment_date": "2026-09-13T16:34:59.000Z"
+    },
+    {
+      "payment_id": 6,
+      "order_id": 6,
+      "payment_method": "Card",
+      "razorpay_payment_id": "pay_mock_1789317863646",
+      "payment_status": "completed",
+      "payment_date": "2026-09-13T16:44:23.000Z"
+    },
+    {
+      "payment_id": 7,
+      "order_id": 7,
+      "payment_method": "COD",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-09-13T16:44:45.000Z"
+    },
+    {
+      "payment_id": 8,
+      "order_id": 8,
+      "payment_method": "UPI",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-09-13T18:18:26.000Z"
+    },
+    {
+      "payment_id": 9,
+      "order_id": 9,
+      "payment_method": "UPI",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-09-13T18:35:20.000Z"
+    },
+    {
+      "payment_id": 10,
+      "order_id": 10,
+      "payment_method": "UPI",
+      "razorpay_payment_id": null,
+      "payment_status": "pending",
+      "payment_date": "2026-10-09T15:31:11.000Z"
+    }
+  ],
+  "shipments": [
+    {
+      "shipment_id": 1,
+      "order_id": 1,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_1_1785690892306",
+      "shipment_status": "shipped",
+      "expected_delivery": "2026-08-06T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 2,
+      "order_id": 2,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_2_1785692186331",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-08-06T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 3,
+      "order_id": 3,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_3_1785737288545",
+      "shipment_status": "returned",
+      "expected_delivery": "2026-08-07T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 4,
+      "order_id": 4,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_4_1789311338681",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-17T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 5,
+      "order_id": 5,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_5_1789317299106",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-17T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 6,
+      "order_id": 6,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_6_1789317863648",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-17T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 7,
+      "order_id": 7,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_7_1789317885445",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-17T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 8,
+      "order_id": 8,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_8_1789323506580",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-17T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 9,
+      "order_id": 9,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_9_1789324520947",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-09-18T18:30:00.000Z"
+    },
+    {
+      "shipment_id": 10,
+      "order_id": 10,
+      "courier_name": "Delhivery (Mock)",
+      "tracking_number": "TRK_MOCK_10_1791559871770",
+      "shipment_status": "pending",
+      "expected_delivery": "2026-10-13T18:30:00.000Z"
+    }
+  ],
+  "product_customizations": [
+    {
+      "id": 1,
+      "cart_item_id": 5,
+      "order_item_id": null,
+      "product_id": 5,
+      "template_name": "white_mug",
+      "design_json": "{\"template\":\"white_mug\",\"text\":\"Your Photo Here\",\"font\":\"system-ui, sans-serif\",\"fontSize\":16,\"fontColor\":\"#ffffff\",\"rotation\":0,\"scale\":0.24,\"positionX\":35,\"positionY\":0,\"textRotation\":0,\"textX\":35,\"textY\":110,\"fabricState\":{\"version\":\"5.3.0\",\"objects\":[{\"type\":\"image\",\"version\":\"5.3.0\",\"originX\":\"left\",\"originY\":\"top\",\"left\":35.24,\"top\":0,\"width\":500,\"height\":753,\"fill\":\"rgb(0,0,0)\",\"stroke\":null,\"strokeWidth\":0,\"strokeDashArray\":null,\"strokeLineCap\":\"butt\",\"strokeDashOffset\":0,\"strokeLineJoin\":\"miter\",\"strokeUniform\":false,\"strokeMiterLimit\":4,\"scaleX\":0.24,\"scaleY\":0.24,\"angle\":0,\"flipX\":false,\"flipY\":false,\"opacity\":1,\"shadow\":null,\"visible\":true,\"backgroundColor\":\"\",\"fillRule\":\"nonzero\",\"paintFirst\":\"fill\",\"globalCompositeOperation\":\"source-over\",\"skewX\":0,\"skewY\":0,\"cropX\":0,\"cropY\":0,\"id\":\"sample_image\",\"selectable\":true,\"evented\":true,\"excludeFromExport\":false,\"src\":\"https://images.unsplash.com/photo-1527061011665-3652c757a4d4?w=500\",\"crossOrigin\":\"anonymous\",\"filters\":[]},{\"type\":\"i-text\",\"version\":\"5.3.0\",\"originX\":\"left\",\"originY\":\"top\",\"left\":35,\"top\":110,\"width\":123.99,\"height\":18.08,\"fill\":\"#ffffff\",\"stroke\":null,\"strokeWidth\":1,\"strokeDashArray\":null,\"strokeLineCap\":\"butt\",\"strokeDashOffset\":0,\"strokeLineJoin\":\"miter\",\"strokeUniform\":false,\"strokeMiterLimit\":4,\"scaleX\":1,\"scaleY\":1,\"angle\":0,\"flipX\":false,\"flipY\":false,\"opacity\":1,\"shadow\":null,\"visible\":true,\"backgroundColor\":\"\",\"fillRule\":\"nonzero\",\"paintFirst\":\"fill\",\"globalCompositeOperation\":\"source-over\",\"skewX\":0,\"skewY\":0,\"fontFamily\":\"system-ui, sans-serif\",\"fontWeight\":\"bold\",\"fontSize\":16,\"text\":\"Your Photo Here\",\"underline\":false,\"overline\":false,\"linethrough\":false,\"textAlign\":\"center\",\"fontStyle\":\"normal\",\"lineHeight\":1.16,\"textBackgroundColor\":\"\",\"charSpacing\":0,\"styles\":[],\"direction\":\"ltr\",\"path\":null,\"pathStartOffset\":0,\"pathSide\":\"left\",\"pathAlign\":\"baseline\",\"id\":\"sample_text\",\"selectable\":true,\"evented\":true,\"excludeFromExport\":false}]}}",
+      "preview_image": "http://localhost:5000/uploads/1785772941895-976439420.png",
+      "created_at": "2026-08-03T16:02:21.000Z"
+    }
+  ]
+}

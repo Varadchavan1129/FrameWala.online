@@ -1,53 +1,97 @@
 // CustomFrame.jsx — upload photo + frame selection UI (FrameVision AI placeholder).
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
-import { PRODUCTS, FINISHES, SIZES, formatINR } from '../../data/mockData.js';
+import { FINISHES, SIZES } from '../../constants/productConstants.js';
+import { formatINR } from '../../utils/formatters.js';
+import { getProducts, uploadCustomizationImage } from '../../services/productService.js';
 import toast from 'react-hot-toast';
 import { FiUpload, FiZap, FiCheck, FiRefreshCw, FiShoppingCart, FiImage } from 'react-icons/fi';
 
-const framesForCustom = PRODUCTS.filter((p) => p.is_customizable).slice(0, 6);
-const samples = [
-  { label: 'Family', url: '/images/products/product_01.jpg' },
-  { label: 'Couple', url: '/images/products/product_08.jpg' },
-  { label: 'Baby', url: '/images/products/product_05.jpg' },
-  { label: 'Wedding', url: '/images/products/product_09.jpg' },
-];
 
 const CustomFrame = () => {
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
 
-  const [photo, setPhoto] = useState('/images/products/product_01.jpg');
-  const [frame, setFrame] = useState(framesForCustom[0]);
+  const [samples, setSamples] = useState([]);
+  const [framesForCustom, setFramesForCustom] = useState([]);
+  const [photo, setPhoto] = useState('/api/images/products/product_01.jpg');
+  const [frame, setFrame] = useState(null);
   const [finishIdx, setFinishIdx] = useState(0);
   const [sizeIdx, setSizeIdx] = useState(1);
   const [processing, setProcessing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const finish = FINISHES[finishIdx];
-  const price = frame.price + SIZES[sizeIdx].delta;
+  useEffect(() => {
+    getProducts().then(res => {
+      const prods = res.data.products;
+      const frames = prods.filter(p => p.is_customizable).slice(0, 6);
+      setFramesForCustom(frames);
+      if (frames.length > 0) setFrame(frames[0]);
 
-  const onUpload = (e) => {
+      const familyProd = prods.find(p => p.category_name === 'Family Frames');
+      const coupleProd = prods.find(p => p.category_name === 'Couple Frames');
+      const babyProd = prods.find(p => p.category_name === 'Baby Frames');
+      const weddingProd = prods.find(p => p.category_name === 'Wedding Frames');
+
+      const dynamicSamples = [
+        { label: 'Family', url: familyProd?.primary_image || '/api/images/products/product_01.jpg' },
+        { label: 'Couple', url: coupleProd?.primary_image || '/api/images/products/product_08.jpg' },
+        { label: 'Baby', url: babyProd?.primary_image || '/api/images/products/product_05.jpg' },
+        { label: 'Wedding', url: weddingProd?.primary_image || '/api/images/products/product_09.jpg' },
+      ];
+      setSamples(dynamicSamples);
+      if (dynamicSamples.length > 0) setPhoto(dynamicSamples[0].url);
+
+      setLoading(false);
+    });
+  }, []);
+
+  const activeFinishes = (frame && frame.finishes) ? frame.finishes : FINISHES;
+  const activeSizes = (frame && frame.sizes) ? frame.sizes : SIZES;
+
+  const finish = activeFinishes[finishIdx] || activeFinishes[0];
+  const price = frame ? Number(frame.price) + (activeSizes[sizeIdx]?.delta || 0) : 0;
+
+  const onUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size exceeds 5MB limit.');
+      return;
+    }
+
     setProcessing(true);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setTimeout(() => {
-        setPhoto(ev.target.result);
-        setProcessing(false);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const res = await uploadCustomizationImage(formData);
+      if (res.success) {
+        setPhoto(res.data.url);
         toast.success('Photo added! Preview updated inside your frame.');
-      }, 700);
-    };
-    reader.readAsDataURL(file);
+      } else {
+        toast.error('Failed to upload photo.');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Upload failed due to an error.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const handleAdd = () => {
-    addToCart(frame, 1, { price, size: SIZES[sizeIdx].label, finish: finish.name, image: frame.primary_image, custom_image: photo });
+  const handleAdd = async () => {
+    return await addToCart(frame, 1, { price, size: activeSizes[sizeIdx]?.label, finish: finish?.name, image: frame.primary_image, custom_image: photo });
   };
-  const handleBuy = () => { handleAdd(); navigate('/checkout'); };
+  const handleBuy = async () => { 
+    const ok = await handleAdd(); 
+    if (ok) navigate('/checkout'); 
+  };
+
+  if (loading || !frame) return <div className="py-20 flex justify-center text-brand-600"><FiZap className="w-8 h-8 animate-pulse" /></div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
@@ -103,15 +147,15 @@ const CustomFrame = () => {
             <div>
               <p className="text-xs font-semibold text-warmDark-600 mb-2">Finish: {finish.name}</p>
               <div className="flex gap-3">
-                {FINISHES.map((f, i) => (
-                  <button key={f.name} onClick={() => setFinishIdx(i)} title={f.name} className={`w-9 h-9 rounded-full border-2 transition-all ${finishIdx === i ? 'ring-2 ring-brand-600 ring-offset-2 border-white' : 'border-white shadow'}`} style={{ backgroundColor: f.hex }} data-testid={`custom-finish-${i}`} />
+                {activeFinishes.map((f, i) => (
+                  <button key={f.name} onClick={() => setFinishIdx(i)} title={f.name} className={`w-9 h-9 rounded-full border-2 transition-all ${finishIdx === i ? 'ring-2 ring-brand-600 ring-offset-2 border-white' : 'border-white shadow'}`} style={{ backgroundColor: f.hex || '#ccc' }} data-testid={`custom-finish-${i}`} />
                 ))}
               </div>
             </div>
             <div>
               <p className="text-xs font-semibold text-warmDark-600 mb-2">Size</p>
               <div className="flex flex-wrap gap-2">
-                {SIZES.map((s, i) => (
+                {activeSizes.map((s, i) => (
                   <button key={s.label} onClick={() => setSizeIdx(i)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all ${sizeIdx === i ? 'border-brand-600 bg-brand-50 text-brand-700' : 'border-warmDark-100 text-warmDark-700 hover:border-warmDark-300'}`} data-testid={`custom-size-${i}`}>{s.label}</button>
                 ))}
               </div>
@@ -122,7 +166,7 @@ const CustomFrame = () => {
         {/* Live preview */}
         <div className="lg:sticky lg:top-28 space-y-6">
           <div className="bg-gradient-to-br from-cream-200/70 to-cream-100 border border-warmDark-100/60 rounded-3xl p-8 flex flex-col items-center">
-            <div className="relative rounded-sm shadow-warm-lg" style={{ padding: '22px', backgroundColor: finish.hex }}>
+            <div className="relative rounded-sm shadow-warm-lg" style={{ padding: '22px', backgroundColor: finish?.hex || '#ccc' }}>
               <div className="bg-white p-4">
                 <div className="relative w-64 sm:w-72 aspect-[4/5] overflow-hidden bg-cream-200">
                   {processing && (
@@ -144,7 +188,7 @@ const CustomFrame = () => {
             </div>
             <div className="mt-6 text-center">
               <p className="font-extrabold text-warmDark-900">{frame.name}</p>
-              <p className="text-sm text-warmDark-500">{finish.name} · {SIZES[sizeIdx].label}</p>
+              <p className="text-sm text-warmDark-500">{finish?.name} · {activeSizes[sizeIdx]?.label}</p>
               <p className="text-2xl font-extrabold text-brand-700 mt-1">{formatINR(price)}</p>
             </div>
             <div className="grid grid-cols-2 gap-3 w-full mt-5">

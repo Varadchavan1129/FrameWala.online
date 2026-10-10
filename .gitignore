@@ -11,4 +11,21 @@ PROJECT_FILE_INVENTORY.json
 
 .env
 .env.*
+<<<<<<< HEAD
 !.env.example
+=======
+*.env
+credentials.json
+*.pem
+*.key
+.credentials
+
+# Build and Dependencies
+node_modules/
+dist/
+build/
+
+# Temp Audit files
+*.csv
+PROJECT_FILE_INVENTORY.json
+>>>>>>> varad-integration

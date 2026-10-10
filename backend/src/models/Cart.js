@@ -25,7 +25,7 @@ class Cart {
   static async getCartItems(userId) {
     const cartId = await this.findOrCreateCart(userId);
     const [rows] = await db.query(
-      `SELECT ci.cart_item_id, ci.cart_id, ci.product_id, ci.quantity, 
+      `SELECT ci.cart_item_id, ci.cart_id, ci.product_id, ci.quantity, ci.size, ci.finish,
               ci.custom_image_url, ci.custom_text, ci.custom_font, ci.custom_font_size, ci.custom_font_color,
               ci.custom_rotation, ci.custom_scale, ci.custom_position_x, ci.custom_position_y,
               p.product_name, p.price, p.stock_quantity, p.is_customizable, p.template_image, p.print_area_json,
@@ -54,6 +54,8 @@ class Cart {
 
     // Map customization properties to legacy columns for backward compatibility
     let legacy = {
+      size: customization.size || null,
+      finish: customization.finish || null,
       custom_image_url: customization.custom_image_url || null,
       custom_text: customization.custom_text || null,
       custom_font: customization.custom_font || null,
@@ -117,12 +119,12 @@ class Cart {
       // Insert new item
       const [result] = await db.query(
         `INSERT INTO cart_items (
-           cart_id, product_id, quantity, 
+           cart_id, product_id, quantity, size, finish,
            custom_image_url, custom_text, custom_font, custom_font_size, custom_font_color,
            custom_rotation, custom_scale, custom_position_x, custom_position_y
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          cartId, productId, quantity, 
+          cartId, productId, quantity, legacy.size, legacy.finish,
           legacy.custom_image_url, legacy.custom_text, legacy.custom_font, legacy.custom_font_size, legacy.custom_font_color,
           legacy.custom_rotation, legacy.custom_scale, legacy.custom_position_x, legacy.custom_position_y
         ]

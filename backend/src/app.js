@@ -7,7 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
 
-// Route imports
+// Customer/public route imports
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import productRoutes from './routes/productRoutes.js';
@@ -17,6 +17,9 @@ import orderRoutes from './routes/orderRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
+// Admin-specific routes (isolated under /api/admin)
+import adminRoutes from './admin/routes/index.js';
+
 // Middleware imports
 import { notFoundHandler, globalErrorHandler } from './middleware/errorMiddleware.js';
 import { sendSuccess } from './utils/responseHelper.js';
@@ -24,14 +27,18 @@ import { sendSuccess } from './utils/responseHelper.js';
 const app = express();
 
 // Standard middlewares
-app.use(helmet({ crossOriginResourcePolicy: false })); // Allow cross-origin images loading from localhost
-app.use(cors());
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors()); // Allow all origins (Vite proxy is used in dev; restrict in production via env)
+
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static uploaded files
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// Serve database images
+app.use('/api/images', express.static(path.join(process.cwd(), '../database/images')));
 
 // Root route
 app.get('/', (req, res) => {
@@ -40,14 +47,14 @@ app.get('/', (req, res) => {
 
 // Health check API
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
+  res.status(200).json({
     status: 'OK',
     uptime: process.uptime(),
     timestamp: new Date().toISOString()
   });
 });
 
-// Modular routes mapping
+// ─── Public / Customer Routes ─────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
@@ -57,10 +64,11 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// 404 Error handler router
-app.use(notFoundHandler);
+// ─── Admin Routes (protected under /api/admin) ───────────────────────────────
+app.use('/api/admin', adminRoutes);
 
-// Global exception catcher handler
+// ─── Error Handlers (must come LAST) ─────────────────────────────────────────
+app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
 export default app;

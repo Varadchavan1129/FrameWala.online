@@ -1,17 +1,23 @@
 // Register.jsx — local (mock) sign up.
 import React, { useState, useContext, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../context/AuthContext.jsx';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { CustomerAuthContext as AuthContext } from '../../context/CustomerAuthContext.jsx';
 import { FiUser, FiMail, FiLock, FiUserPlus } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const Register = () => {
   const { register, user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  useEffect(() => { if (user) navigate('/', { replace: true }); }, [user]);
+  const searchParams = new URLSearchParams(location.search);
+  const redirectUrl = location.state?.from?.pathname || searchParams.get('redirect') || '/';
+
+  useEffect(() => { 
+    if (user) navigate(redirectUrl, { replace: true }); 
+  }, [user, redirectUrl]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -37,7 +43,7 @@ const Register = () => {
           <div className="relative"><FiLock className="w-4 h-4 text-warmDark-400 absolute left-3 top-1/2 -translate-y-1/2" /><input className={input} type="password" placeholder="Password" value={form.password} onChange={set('password')} required data-testid="reg-password" /></div>
           <button type="submit" className="w-full flex items-center justify-center gap-2 py-3 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm" data-testid="reg-submit"><FiUserPlus className="w-4 h-4" /> Create Account</button>
         </form>
-        <p className="text-center text-xs text-warmDark-500">Already have an account? <Link to="/login" className="text-brand-600 font-bold hover:underline">Login</Link></p>
+        <p className="text-center text-xs text-warmDark-500">Already have an account? <Link to={`/login${location.search}`} className="text-brand-600 font-bold hover:underline">Login</Link></p>
       </div>
     </div>
   );

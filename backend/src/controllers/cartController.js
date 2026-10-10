@@ -37,6 +37,8 @@ export const addToCart = async (req, res, next) => {
       quantity = 1,
       custom_image_url,
       custom_text,
+      size,
+      finish,
       custom_font,
       custom_font_size,
       custom_font_color,
@@ -73,6 +75,8 @@ export const addToCart = async (req, res, next) => {
     const cartItemId = await Cart.addItem(userId, product_id, quantity, {
       custom_image_url,
       custom_text,
+      size,
+      finish,
       custom_font,
       custom_font_size,
       custom_font_color,

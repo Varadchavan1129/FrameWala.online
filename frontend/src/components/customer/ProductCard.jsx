@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
 import { CartContext } from '../../context/CartContext.jsx';
-import { formatINR } from '../../data/mockData.js';
+import { formatINR } from '../../utils/formatters.js';
 import { FiHeart, FiShoppingCart, FiStar } from 'react-icons/fi';
 
 const cardVariants = {

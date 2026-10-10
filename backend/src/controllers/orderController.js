@@ -14,7 +14,11 @@ import { sendSuccess, sendError } from '../utils/responseHelper.js';
  */
 export const placeOrder = async (req, res, next) => {
   const userId = req.user.user_id;
-  const { address_id, payment_method = 'COD' } = req.body;
+  const { address_id, payment_method } = req.body;
+
+  if (payment_method === 'COD') {
+    return res.status(400).json(sendError('Cash on Delivery is not supported. Please use a prepaid method.'));
+  }
 
   if (!address_id) {
     return res.status(400).json(sendError('Address ID is required.'));
@@ -44,7 +48,7 @@ export const placeOrder = async (req, res, next) => {
     for (const item of cartItems) {
       // Fetch latest stock directly via connection to avoid read race conditions
       const [productRows] = await connection.query(
-        'SELECT product_name, price, stock_quantity FROM products WHERE product_id = ? FOR UPDATE',
+        'SELECT product_name, price, stock_quantity, sizes FROM products WHERE product_id = ? FOR UPDATE',
         [item.product_id]
       );
       
@@ -57,14 +61,31 @@ export const placeOrder = async (req, res, next) => {
         throw new Error(`Insufficient stock for ${product.product_name}. Only ${product.stock_quantity} left.`);
       }
 
-      const itemTotal = product.price * item.quantity;
+      let sizeDelta = 0;
+      if (item.size && product.sizes) {
+        let sizesArray = [];
+        if (typeof product.sizes === 'string') {
+          try { sizesArray = JSON.parse(product.sizes); } catch(e) {}
+        } else {
+          sizesArray = product.sizes;
+        }
+        const matchedSize = sizesArray.find(s => s.label === item.size);
+        if (matchedSize) {
+          sizeDelta = Number(matchedSize.delta) || 0;
+        }
+      }
+
+      const itemFinalPrice = Number(product.price) + sizeDelta;
+      const itemTotal = itemFinalPrice * item.quantity;
       totalAmount += itemTotal;
 
       itemsToInsert.push({
         cart_item_id: item.cart_item_id,
         product_id: item.product_id,
         quantity: item.quantity,
-        price: product.price,
+        price: itemFinalPrice,
+        size: item.size,
+        finish: item.finish,
         custom_image_url: item.custom_image_url,
         custom_text: item.custom_text,
         custom_font: item.custom_font,
@@ -90,12 +111,12 @@ export const placeOrder = async (req, res, next) => {
       // Insert item
       const [orderItemResult] = await connection.query(
         `INSERT INTO order_items (
-          order_id, product_id, quantity, price,
+          order_id, product_id, quantity, price, size, finish,
           custom_image_url, custom_text, custom_font, custom_font_size, custom_font_color,
           custom_rotation, custom_scale, custom_position_x, custom_position_y
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          orderId, item.product_id, item.quantity, item.price,
+          orderId, item.product_id, item.quantity, item.price, item.size, item.finish,
           item.custom_image_url, item.custom_text, item.custom_font, item.custom_font_size, item.custom_font_color,
           item.custom_rotation, item.custom_scale, item.custom_position_x, item.custom_position_y
         ]
@@ -117,21 +138,12 @@ export const placeOrder = async (req, res, next) => {
       );
     }
 
-    // 6. Create payment logs (Mock Payment)
-    const isPaid = payment_method === 'UPI' || payment_method === 'Card';
+    // 6. Create payment logs (Prepaid pending verification)
     await connection.query(
       `INSERT INTO payments (order_id, payment_method, razorpay_payment_id, payment_status) 
        VALUES (?, ?, ?, ?)`,
-      [orderId, payment_method, isPaid ? `pay_mock_${Date.now()}` : null, isPaid ? 'completed' : 'pending']
+      [orderId, payment_method, null, 'pending']
     );
-
-    if (isPaid) {
-      // Update payment status on order
-      await connection.query(
-        "UPDATE orders SET payment_status = 'paid' WHERE order_id = ?",
-        [orderId]
-      );
-    }
 
     // 7. Create shipment logs (Mock Shipment setup)
     const expectedDelivery = new Date();
@@ -153,7 +165,10 @@ export const placeOrder = async (req, res, next) => {
     connection.release();
 
     const orderDetails = await Order.findById(orderId);
-    res.status(201).json(sendSuccess('Order placed successfully.', { order: orderDetails }));
+    res.status(201).json(sendSuccess('Order placed successfully.', { 
+      order: orderDetails,
+      admin_whatsapp: process.env.ADMIN_WHATSAPP_NUMBER
+    }));
   } catch (error) {
     // Rollback changes on errors
     await connection.rollback();
@@ -195,7 +210,10 @@ export const getOrderById = async (req, res, next) => {
       return res.status(403).json(sendError('Unauthorized access to this order details.'));
     }
 
-    res.status(200).json(sendSuccess('Order details retrieved successfully.', { order }));
+    res.status(200).json(sendSuccess('Order details retrieved successfully.', { 
+      order,
+      admin_whatsapp: process.env.ADMIN_WHATSAPP_NUMBER
+    }));
   } catch (error) {
     next(error);
   }

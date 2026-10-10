@@ -51,7 +51,8 @@ class Order {
    */
   static async findAll(userId = null) {
     let sql = `
-      SELECT o.*, u.first_name, u.last_name, u.email, a.full_name AS shipping_name, a.city, a.state
+      SELECT o.*, u.first_name, u.last_name, u.email, a.full_name AS shipping_name, a.city, a.state,
+      (SELECT custom_image_url FROM order_items WHERE order_id = o.order_id AND custom_image_url IS NOT NULL LIMIT 1) AS thumbnail
       FROM orders o
       JOIN users u ON o.user_id = u.user_id
       JOIN addresses a ON o.address_id = a.address_id

@@ -1,0 +1,767 @@
+[
+  {
+    "id": 1,
+    "slug": "classic-wooden-photo-frame",
+    "name": "Classic Wooden Photo Frame",
+    "category": "personalized",
+    "category_name": "Wooden Frames",
+    "price": 699,
+    "mrp": 899,
+    "rating": 4.8,
+    "review_count": 128,
+    "badge": "Best Seller",
+    "stock": 15,
+    "subtitle": "Timeless elegance for your precious memories.",
+    "description": "Elegant & timeless wooden frame to showcase your precious memories. Handcrafted with premium teak-finish wood and crystal-clear UV protective glass.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_01.jpg",
+    "images": [
+      "/images/products/product_01.jpg",
+      "/images/products/frame_01.jpg",
+      "/images/products/product_02.jpg",
+      "/images/products/frame_02.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "slug": "multi-photo-collage-frame",
+    "name": "Multi Photo Collage Frame",
+    "category": "collage",
+    "category_name": "Collage Frames",
+    "price": 1099,
+    "mrp": 1399,
+    "rating": 4.7,
+    "review_count": 96,
+    "badge": "Trending",
+    "stock": 22,
+    "subtitle": "Showcase multiple moments in one beautiful frame.",
+    "description": "Display all your favourite moments together in one stunning multi-window collage frame with a personalised \"Family\" cutout centrepiece.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_02.jpg",
+    "images": [
+      "/images/products/product_02.jpg",
+      "/images/products/frame_02.jpg",
+      "/images/products/product_03.jpg",
+      "/images/products/frame_03.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "slug": "natural-wood-grain-frame",
+    "name": "Natural Wood Grain Frame",
+    "category": "family",
+    "category_name": "Family Frames",
+    "price": 699,
+    "mrp": 849,
+    "rating": 4.9,
+    "review_count": 74,
+    "badge": "Popular",
+    "stock": 30,
+    "subtitle": "Simple, natural finish perfect for every home.",
+    "description": "A minimal natural oak grain frame that fits effortlessly into any home decor while keeping the focus on your memories.",
+    "is_customizable": false,
+    "primary_image": "/images/products/product_03.jpg",
+    "images": [
+      "/images/products/product_03.jpg",
+      "/images/products/frame_03.jpg",
+      "/images/products/product_04.jpg",
+      "/images/products/frame_04.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "slug": "heart-shape-couple-frame",
+    "name": "Heart Shape Couple Frame",
+    "category": "couple",
+    "category_name": "Couple Frames",
+    "price": 859,
+    "mrp": 1099,
+    "rating": 4.9,
+    "review_count": 210,
+    "badge": "Gift Choice",
+    "stock": 12,
+    "subtitle": "Perfect romantic gift for special moments.",
+    "description": "A romantic heart-shaped frame on a solid base, perfect for anniversaries, Valentine's day and celebrating your loved ones.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_04.jpg",
+    "images": [
+      "/images/products/product_04.jpg",
+      "/images/products/frame_04.jpg",
+      "/images/products/product_05.jpg",
+      "/images/products/frame_05.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "slug": "modern-white-baby-frame",
+    "name": "Modern White Baby Frame",
+    "category": "baby",
+    "category_name": "Baby Frames",
+    "price": 899,
+    "mrp": 1149,
+    "rating": 4.9,
+    "review_count": 82,
+    "badge": "New",
+    "stock": 18,
+    "subtitle": "Sleek minimal white frame for baby milestones.",
+    "description": "A modern, minimal white frame designed to cherish your baby's cutest milestones and everyday little moments.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_05.jpg",
+    "images": [
+      "/images/products/product_05.jpg",
+      "/images/products/frame_05.jpg",
+      "/images/products/product_06.jpg",
+      "/images/products/frame_06.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "slug": "rustic-vintage-wooden-frame",
+    "name": "Rustic Vintage Wooden Frame",
+    "category": "personalized",
+    "category_name": "Wooden Frames",
+    "price": 749,
+    "mrp": 999,
+    "rating": 4.8,
+    "review_count": 67,
+    "badge": null,
+    "stock": 25,
+    "subtitle": "Vintage distressed look for classic charm.",
+    "description": "A distressed vintage wooden frame that adds warm rustic character to landscapes, travel and heritage photographs.",
+    "is_customizable": false,
+    "primary_image": "/images/products/product_07.jpg",
+    "images": [
+      "/images/products/product_07.jpg",
+      "/images/products/frame_07.jpg",
+      "/images/products/product_08.jpg",
+      "/images/products/frame_08.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "slug": "acrylic-table-floating-frame",
+    "name": "Acrylic Table Floating Frame",
+    "category": "couple",
+    "category_name": "Couple Frames",
+    "price": 699,
+    "mrp": 899,
+    "rating": 4.9,
+    "review_count": 114,
+    "badge": "Sleek",
+    "stock": 20,
+    "subtitle": "Sleek floating frame with premium acrylic.",
+    "description": "A sleek, modern floating acrylic frame that makes your photo appear suspended in crystal-clear glass. Perfect for desks and shelves.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_08.jpg",
+    "images": [
+      "/images/products/product_08.jpg",
+      "/images/products/frame_08.jpg",
+      "/images/products/product_09.jpg",
+      "/images/products/frame_09.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "slug": "wedding-shadow-box-frame",
+    "name": "Wedding Shadow Box Frame",
+    "category": "wedding",
+    "category_name": "Wedding Frames",
+    "price": 1199,
+    "mrp": 1599,
+    "rating": 4.9,
+    "review_count": 153,
+    "badge": "Premium",
+    "stock": 7,
+    "subtitle": "Preserve keepsakes & photo memories.",
+    "description": "A deep shadow box frame to preserve wedding keepsakes, dried flowers and your most treasured photographs together.",
+    "is_customizable": true,
+    "primary_image": "/images/products/product_09.jpg",
+    "images": [
+      "/images/products/product_09.jpg",
+      "/images/products/frame_09.jpg",
+      "/images/products/product_10.jpg",
+      "/images/products/frame_10.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "slug": "hanging-rope-wooden-frame",
+    "name": "Hanging Rope Wooden Frame",
+    "category": "family",
+    "category_name": "Family Frames",
+    "price": 799,
+    "mrp": 999,
+    "rating": 4.9,
+    "review_count": 188,
+    "badge": null,
+    "stock": 16,
+    "subtitle": "Rope hanging accent for feature walls.",
+    "description": "A charming rope-hung wooden frame that adds a natural, decorative accent to gallery and feature walls.",
+    "is_customizable": false,
+    "primary_image": "/images/products/product_10.jpg",
+    "images": [
+      "/images/products/product_10.jpg",
+      "/images/products/frame_10.jpg",
+      "/images/products/product_01.jpg",
+      "/images/products/frame_01.jpg"
+    ],
+    "sizes": [
+      {
+        "label": "6 x 4 inch",
+        "delta": -100
+      },
+      {
+        "label": "8 x 6 inch",
+        "delta": 0
+      },
+      {
+        "label": "10 x 8 inch",
+        "delta": 200
+      },
+      {
+        "label": "12 x 10 inch",
+        "delta": 450
+      }
+    ],
+    "finishes": [
+      {
+        "name": "Dark Walnut",
+        "hex": "#4A2E1C"
+      },
+      {
+        "name": "Natural Oak",
+        "hex": "#C8A06A"
+      },
+      {
+        "name": "Matte White",
+        "hex": "#F3F0E9"
+      },
+      {
+        "name": "Classic Black",
+        "hex": "#191512"
+      },
+      {
+        "name": "Rustic Brown",
+        "hex": "#7A4A2B"
+      }
+    ],
+    "highlights": [
+      {
+        "icon": "wood",
+        "title": "Premium Wooden",
+        "desc": "High quality wood"
+      },
+      {
+        "icon": "print",
+        "title": "High Definition Print",
+        "desc": "Vibrant & long lasting"
+      },
+      {
+        "icon": "glass",
+        "title": "Glass Protection",
+        "desc": "Scratch resistant"
+      },
+      {
+        "icon": "clean",
+        "title": "Easy to Clean",
+        "desc": "Wipe with dry cloth"
+      }
+    ]
+  }
+]

@@ -1,16 +1,17 @@
 // Navbar.jsx
 // FrameWala premium header: forest-green announcement bar + cream nav with dropdowns.
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuthContext } from '../../context/AuthContext.jsx';
+import { CustomerAuthContext as AuthContext } from '../../context/CustomerAuthContext.jsx';
 import { CartContext } from '../../context/CartContext.jsx';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
-import { FILTER_CATEGORIES } from '../../data/mockData.js';
+import { FILTER_CATEGORIES } from '../../constants/productConstants.js';
 import {
   FiHeart, FiShoppingCart, FiUser, FiMenu, FiX,
   FiPhoneCall, FiTruck, FiChevronDown, FiSearch, FiLogOut,
+  FiPackage, FiSettings,
 } from 'react-icons/fi';
 
 const giftItems = [
@@ -29,10 +30,28 @@ const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(null);
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const accountMenuRef = useRef(null);
+
+  // Close account dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(e.target)) {
+        setOpenMenu((prev) => (prev === 'account' ? null : prev));
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const submitSearch = (e) => {
     e.preventDefault();
     navigate(`/products?search=${encodeURIComponent(query.trim())}`);
+    setMobileOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setOpenMenu(null);
     setMobileOpen(false);
   };
 
@@ -70,7 +89,7 @@ const Navbar = () => {
             <span>FREE Delivery on orders above ₹999</span>
           </div>
           <div className="hidden md:flex items-center gap-5 text-cream-200/90">
-            <Link to="/about" className="hover:text-gold-400 transition-colors">Track Order</Link>
+            <Link to="/orders" className="hover:text-gold-400 transition-colors">Track Order</Link>
             <Link to="/contact" className="hover:text-gold-400 transition-colors">Help Center</Link>
           </div>
         </div>
@@ -151,11 +170,73 @@ const Navbar = () => {
 
             {/* Actions */}
             <div className="hidden md:flex items-center gap-6">
+              {/* User account button / dropdown */}
               {user ? (
-                <button onClick={logout} className="flex flex-col items-center text-warmDark-800 hover:text-brand-600 transition-colors" data-testid="navbar-logout">
-                  <FiLogOut className="w-5 h-5" />
-                  <span className="text-[10px] font-semibold mt-0.5">Logout</span>
-                </button>
+                <div className="relative" ref={accountMenuRef}>
+                  <button
+                    onClick={() => setOpenMenu(openMenu === 'account' ? null : 'account')}
+                    className="flex flex-col items-center text-warmDark-800 hover:text-brand-600 transition-colors focus:outline-none"
+                    data-testid="navbar-account-menu"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-extrabold text-sm border-2 border-brand-200">
+                      {user.first_name?.[0]?.toUpperCase() || <FiUser className="w-4 h-4" />}
+                    </div>
+                    <span className="text-[10px] font-semibold mt-0.5 max-w-[64px] truncate">
+                      {user.first_name || 'Account'}
+                    </span>
+                  </button>
+
+                  <AnimatePresence>
+                    {openMenu === 'account' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full right-0 mt-2 w-52 bg-white rounded-2xl shadow-warm-lg border border-warmDark-100/60 p-2 z-50"
+                      >
+                        {/* User info header */}
+                        <div className="px-3 py-2.5 border-b border-cream-200 mb-1">
+                          <p className="font-extrabold text-warmDark-900 text-sm truncate">
+                            {user.first_name} {user.last_name}
+                          </p>
+                          <p className="text-[11px] text-warmDark-400 truncate">{user.email}</p>
+                        </div>
+
+                        <Link
+                          to="/profile"
+                          onClick={() => setOpenMenu(null)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-cream-100 text-sm font-semibold text-warmDark-800 hover:text-brand-600 transition-colors"
+                          data-testid="navbar-profile-link"
+                        >
+                          <FiUser className="w-4 h-4 text-brand-500" />
+                          My Profile
+                        </Link>
+
+                        <Link
+                          to="/orders"
+                          onClick={() => setOpenMenu(null)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-cream-100 text-sm font-semibold text-warmDark-800 hover:text-brand-600 transition-colors"
+                          data-testid="navbar-orders-link"
+                        >
+                          <FiPackage className="w-4 h-4 text-brand-500" />
+                          My Orders
+                        </Link>
+
+                        <div className="border-t border-cream-200 mt-1 pt-1">
+                          <button
+                            onClick={handleLogout}
+                            className="flex w-full items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-50 text-sm font-semibold text-warmDark-700 hover:text-red-600 transition-colors"
+                            data-testid="navbar-logout"
+                          >
+                            <FiLogOut className="w-4 h-4" />
+                            Logout
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               ) : (
                 <Link to="/login" className="flex flex-col items-center text-warmDark-800 hover:text-brand-600 transition-colors" data-testid="navbar-account">
                   <FiUser className="w-5 h-5" />
@@ -176,7 +257,7 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Mobile */}
+            {/* Mobile toggle */}
             <div className="flex items-center gap-3 lg:hidden">
               <Link to="/cart" className="relative p-1.5 text-warmDark-900">
                 <FiShoppingCart className="w-6 h-6" />
@@ -189,6 +270,7 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile menu */}
         <AnimatePresence>
           {mobileOpen && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
@@ -210,7 +292,20 @@ const Navbar = () => {
                 <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="py-1">Wishlist ({wishlistItems.length})</Link>
                 <Link to="/about" onClick={() => setMobileOpen(false)} className="py-1">About</Link>
                 {user ? (
-                  <button onClick={() => { logout(); setMobileOpen(false); }} className="text-left text-red-600 py-1">Logout</button>
+                  <>
+                    <div className="border-t border-cream-200 pt-2 mt-1 space-y-1">
+                      <p className="text-xs text-warmDark-400 font-medium">Signed in as {user.first_name}</p>
+                      <Link to="/profile" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 py-1 text-brand-700">
+                        <FiUser className="w-4 h-4" /> My Profile
+                      </Link>
+                      <Link to="/orders" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 py-1 text-brand-700">
+                        <FiPackage className="w-4 h-4" /> My Orders
+                      </Link>
+                      <button onClick={handleLogout} className="flex items-center gap-2 py-1 text-red-600">
+                        <FiLogOut className="w-4 h-4" /> Logout
+                      </button>
+                    </div>
+                  </>
                 ) : (
                   <Link to="/login" onClick={() => setMobileOpen(false)} className="py-1 text-brand-600">Login / Register</Link>
                 )}
