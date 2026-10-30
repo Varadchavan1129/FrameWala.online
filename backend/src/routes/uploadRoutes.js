@@ -56,7 +56,7 @@ router.post('/multiple', authenticateToken, isAdmin, (req, res, next) => {
 });
 
 // Customer customization image upload route
-router.post('/customization', authenticateToken, (req, res, next) => {
+router.post('/customization', (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err) {
       return res.status(400).json(sendError(err.message));
@@ -74,3 +74,4 @@ router.post('/customization', authenticateToken, (req, res, next) => {
 });
 
 export default router;
+

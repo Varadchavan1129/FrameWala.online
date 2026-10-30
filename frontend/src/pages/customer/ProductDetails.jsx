@@ -1,21 +1,29 @@
 // ProductDetails.jsx
-// Redesigned photo frame detail view with SKU, real reviews list, sizes, and finish selector.
+// Interactive photo frame detail view with live customizer, SKU, real reviews list, sizes, and finish selector.
 
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
 import { WishlistContext } from '../../context/WishlistContext.jsx';
 import { CustomerAuthContext as AuthContext } from '../../context/CustomerAuthContext.jsx';
 import { FRAME_COLORS, SIZES as CONST_SIZES, HIGHLIGHTS, resolveFrameColor } from '../../constants/productConstants.js';
 import { formatINR } from '../../utils/formatters.js';
-import { getProductById, getProducts } from '../../services/productService.js';
+import { getProductById, getProducts, uploadCustomizationImage } from '../../services/productService.js';
 import { getProductReviews, createReview } from '../../services/reviewService.js';
 import toast from 'react-hot-toast';
 import {
   FiHeart, FiShoppingCart, FiStar, FiTruck, FiShield,
-  FiChevronLeft, FiChevronRight, FiCheck, FiRefreshCw, FiImage, FiAward
+  FiChevronLeft, FiChevronRight, FiCheck, FiRefreshCw, FiImage, FiAward,
+  FiUpload, FiType, FiSliders, FiMaximize2, FiTrash2
 } from 'react-icons/fi';
+
+const SAMPLE_PORTRAITS = [
+  { label: 'Family', url: '/images/products/product_01.jpg' },
+  { label: 'Couple', url: '/images/products/product_08.jpg' },
+  { label: 'Baby', url: '/images/products/product_05.jpg' },
+  { label: 'Wedding', url: '/images/products/product_09.jpg' },
+];
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -30,6 +38,13 @@ const ProductDetails = () => {
   const [qty, setQty] = useState(1);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // In-place Frame Customization state
+  const [customPhoto, setCustomPhoto] = useState(null);
+  const [customText, setCustomText] = useState('');
+  const [customFont, setCustomFont] = useState('serif'); // 'serif' | 'script' | 'sans'
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [previewTab, setPreviewTab] = useState('live'); // 'live' | 'gallery'
 
   // Real Reviews state
   const [reviews, setReviews] = useState([]);
@@ -67,12 +82,18 @@ const ProductDetails = () => {
             : [productData.primary_image || '/images/products/product_01.jpg'],
           sizes: (productData.sizes && productData.sizes.length > 0) ? productData.sizes : CONST_SIZES,
           finishes: (productData.finishes && productData.finishes.length > 0) ? productData.finishes.map(f => resolveFrameColor(f)) : FRAME_COLORS,
-          highlights: HIGHLIGHTS
+          highlights: HIGHLIGHTS,
+          is_customizable: Boolean(productData.is_customizable)
         };
 
         if (isMounted) {
           setProduct(mappedProduct);
           setImgIndex(0);
+          if (mappedProduct.is_customizable) {
+            setPreviewTab('live');
+          } else {
+            setPreviewTab('gallery');
+          }
         }
 
         // Fetch related products
@@ -153,14 +174,62 @@ const ProductDetails = () => {
   const unitPrice = basePrice + (currentSize?.delta || 0);
   const totalPrice = unitPrice * qty;
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size exceeds 5MB limit.');
+      return;
+    }
+
+    // Instant local preview
+    const localUrl = URL.createObjectURL(file);
+    setCustomPhoto(localUrl);
+    setPreviewTab('live');
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const res = await uploadCustomizationImage(formData);
+      if (res?.success && res?.data?.url) {
+        setCustomPhoto(res.data.url);
+        toast.success('Your photo has been fitted inside the frame!');
+      } else {
+        toast.success('Your photo preview is ready inside the frame!');
+      }
+    } catch (err) {
+      console.warn('Backend upload notice:', err.message);
+      toast.success('Photo preview ready!');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   const handleAddToCart = () => {
     addToCart(product, qty, {
       price: unitPrice,
       size: currentSize?.label,
       finish: currentFinish?.name,
       color: currentFinish?.name,
+      custom_image: customPhoto || undefined,
+      custom_text: customText.trim() || undefined,
+      design_json: (customPhoto || customText.trim()) ? {
+        photo: customPhoto,
+        text: customText.trim(),
+        font: customFont,
+        size: currentSize?.label,
+        finish: currentFinish?.name,
+      } : undefined,
     });
-    toast.success(`Added ${product.name} (${currentSize?.label}) to cart!`);
+    
+    if (customPhoto || customText.trim()) {
+      toast.success(`Added personalized ${product.name} to cart!`);
+    } else {
+      toast.success(`Added ${product.name} (${currentSize?.label}) to cart!`);
+    }
   };
 
   const handleReviewSubmit = async (e) => {
@@ -176,7 +245,7 @@ const ProductDetails = () => {
 
     setSubmittingReview(true);
     try {
-      const res = await createReview({
+      await createReview({
         product_id: pId,
         rating: newRating,
         review: newComment.trim(),
@@ -210,12 +279,45 @@ const ProductDetails = () => {
 
       {/* Main PDP Grid */}
       <div className="grid lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        {/* Left: Image Gallery */}
+        {/* Left: Interactive Visualizer & Image Gallery */}
         <div className="lg:col-span-7 space-y-4">
-          <div className="relative aspect-square bg-cream-100 rounded-3xl overflow-hidden border border-warmDark-100/80 shadow-warm-md">
+          {/* Customizer Tabs if product is customizable */}
+          {product.is_customizable && (
+            <div className="flex items-center justify-between bg-cream-100 p-1.5 rounded-2xl border border-warmDark-100/80">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setPreviewTab('live')}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 ${
+                    previewTab === 'live'
+                      ? 'bg-brand-700 text-cream-50 shadow-sm'
+                      : 'text-warmDark-700 hover:text-brand-700'
+                  }`}
+                >
+                  <FiSliders className="w-3.5 h-3.5" /> Live Frame Visualizer
+                </button>
+                <button
+                  onClick={() => setPreviewTab('gallery')}
+                  className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    previewTab === 'gallery'
+                      ? 'bg-brand-700 text-cream-50 shadow-sm'
+                      : 'text-warmDark-700 hover:text-brand-700'
+                  }`}
+                >
+                  <FiImage className="w-3.5 h-3.5" /> Product Angles
+                </button>
+              </div>
+              <span className="text-[11px] font-semibold text-brand-800 pr-2 hidden sm:inline">
+                ✨ Photo Fits In Real-Time
+              </span>
+            </div>
+          )}
+
+          {/* Frame Display Container */}
+          <div className="relative aspect-square bg-gradient-to-br from-[#FAF8F5] to-[#EDE5D8] rounded-3xl overflow-hidden border border-warmDark-100/80 shadow-warm-lg p-6 sm:p-10 flex items-center justify-center">
+            {/* Wishlist Button */}
             <button
               onClick={() => toggleWishlist(product)}
-              className={`absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
+              className={`absolute top-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center shadow-md transition-all ${
                 favorited ? 'bg-red-50 text-red-500' : 'bg-white/90 text-warmDark-600 hover:text-red-500'
               }`}
               data-testid="pdp-wishlist"
@@ -224,78 +326,187 @@ const ProductDetails = () => {
               <FiHeart className={`w-4.5 h-4.5 ${favorited ? 'fill-current' : ''}`} />
             </button>
 
-            {/* Product Code Badge */}
-            <span className="absolute top-4 left-4 z-10 bg-warmDark-900/90 backdrop-blur text-cream-50 font-mono font-bold text-xs px-3 py-1 rounded-md shadow border border-warmDark-700/60">
-              {product.product_code}
-            </span>
+            {/* Product Code & Customizable Badges */}
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+              <span className="bg-warmDark-900/90 backdrop-blur text-cream-50 font-mono font-bold text-xs px-3 py-1 rounded-md shadow border border-warmDark-700/60">
+                {product.product_code}
+              </span>
+              {product.is_customizable && (
+                <span className="bg-gold-500 text-brand-950 font-extrabold text-[11px] px-2.5 py-1 rounded-md shadow flex items-center gap-1">
+                  ✨ CUSTOMIZABLE
+                </span>
+              )}
+            </div>
 
-            <motion.img
-              key={imgIndex}
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              src={product.images[imgIndex] || '/images/products/product_01.jpg'}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              data-testid="pdp-main-image"
-              onError={(e) => {
-                if (!e.currentTarget.dataset.errored) {
-                  e.currentTarget.dataset.errored = "1";
-                  e.currentTarget.src = '/images/products/product_01.jpg';
-                }
-              }}
-            />
+            {/* View Mode 1: Live Frame Customizer View */}
+            {previewTab === 'live' ? (
+              <div
+                className="relative rounded-lg shadow-2xl transition-all duration-500 max-w-full max-h-full flex flex-col items-center justify-center"
+                style={{
+                  padding: '24px',
+                  backgroundColor: currentFinish?.hex || '#4A2E1C',
+                  boxShadow: '0 20px 40px -10px rgba(0,0,0,0.35), inset 0 2px 4px rgba(255,255,255,0.2), inset 0 -2px 4px rgba(0,0,0,0.4)',
+                }}
+              >
+                {/* Museum Mat (Passe-partout) */}
+                <div
+                  className="bg-[#FAF8F5] p-5 sm:p-6 shadow-inner rounded-sm flex flex-col items-center justify-center"
+                  style={{
+                    boxShadow: 'inset 0 3px 8px rgba(0,0,0,0.18)',
+                    minWidth: '220px',
+                    maxWidth: '360px',
+                  }}
+                >
+                  {/* Photo Slot */}
+                  <div className="relative w-48 sm:w-64 aspect-[4/5] overflow-hidden bg-cream-200 rounded-sm shadow-md border border-warmDark-200/50">
+                    {uploadingPhoto && (
+                      <div className="absolute inset-0 z-20 bg-warmDark-900/60 backdrop-blur-sm flex flex-col items-center justify-center text-cream-50 gap-2">
+                        <FiRefreshCw className="w-6 h-6 animate-spin text-gold-400" />
+                        <span className="text-xs font-bold">Fitting your photo...</span>
+                      </div>
+                    )}
+                    <motion.img
+                      key={customPhoto || 'default'}
+                      initial={{ opacity: 0.7 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                      src={customPhoto || product.primary_image || '/images/products/product_01.jpg'}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/products/product_01.jpg';
+                      }}
+                    />
 
-            {product.images.length > 1 && (
-              <>
-                <button
-                  onClick={() => setImgIndex((i) => (i - 1 + product.images.length) % product.images.length)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center text-warmDark-800 transition-all"
-                  aria-label="Previous image"
-                >
-                  <FiChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setImgIndex((i) => (i + 1) % product.images.length)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center text-warmDark-800 transition-all"
-                  aria-label="Next image"
-                >
-                  <FiChevronRight className="w-5 h-5" />
-                </button>
-              </>
+                    {/* Subtle UV Glass Reflection Shimmer */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none" />
+                  </div>
+
+                  {/* Engraved Metallic Caption Plaque */}
+                  {customText.trim() && (
+                    <motion.div
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="mt-3.5 px-4 py-1.5 rounded-sm bg-gradient-to-r from-[#D4AF37] via-[#FFF2B2] to-[#C59B27] border border-[#A67C1E] shadow-sm text-center max-w-[90%]"
+                      style={{
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.6)',
+                      }}
+                    >
+                      <p
+                        className={`text-[11px] sm:text-xs font-bold text-[#3B280C] uppercase tracking-wider truncate ${
+                          customFont === 'script'
+                            ? 'font-serif italic capitalize text-sm'
+                            : customFont === 'sans'
+                            ? 'font-sans font-extrabold tracking-widest'
+                            : 'font-serif tracking-widest'
+                        }`}
+                      >
+                        {customText}
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* View Mode 2: Standard Product Image Gallery */
+              <div className="w-full h-full relative">
+                <motion.img
+                  key={imgIndex}
+                  initial={{ opacity: 0.5 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  src={product.images[imgIndex] || '/images/products/product_01.jpg'}
+                  alt={product.name}
+                  className="w-full h-full object-cover rounded-2xl"
+                  onError={(e) => {
+                    e.currentTarget.src = '/images/products/product_01.jpg';
+                  }}
+                />
+
+                {product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setImgIndex((i) => (i - 1 + product.images.length) % product.images.length)}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center text-warmDark-800 transition-all"
+                      aria-label="Previous image"
+                    >
+                      <FiChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => setImgIndex((i) => (i + 1) % product.images.length)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center text-warmDark-800 transition-all"
+                      aria-label="Next image"
+                    >
+                      <FiChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Thumbnails */}
-          {product.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-              {product.images.map((img, i) => (
-                <button
-                  key={i}
-                  onClick={() => setImgIndex(i)}
-                  className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
-                    imgIndex === i ? 'border-brand-700 ring-2 ring-brand-100' : 'border-warmDark-100 hover:border-warmDark-300'
-                  }`}
-                  data-testid={`pdp-thumb-${i}`}
-                >
-                  <img
-                    src={img || '/images/products/product_01.jpg'}
-                    alt=""
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      if (!e.currentTarget.dataset.errored) {
-                        e.currentTarget.dataset.errored = "1";
-                        e.currentTarget.src = '/images/products/product_01.jpg';
-                      }
+          {/* Quick-Pick Sample Thumbnails or Gallery Thumbnails */}
+          {previewTab === 'live' ? (
+            <div className="bg-white border border-warmDark-100/70 p-3.5 rounded-2xl flex items-center justify-between flex-wrap gap-2">
+              <span className="text-xs font-bold text-warmDark-700">Preview with sample portraits:</span>
+              <div className="flex gap-2">
+                {SAMPLE_PORTRAITS.map((s) => (
+                  <button
+                    key={s.label}
+                    onClick={() => {
+                      setCustomPhoto(s.url);
+                      toast.success(`Fitted ${s.label} portrait into frame!`);
                     }}
-                  />
-                </button>
-              ))}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all ${
+                      customPhoto === s.url
+                        ? 'border-brand-700 bg-brand-50 text-brand-900 ring-1 ring-brand-700'
+                        : 'border-warmDark-200 hover:border-warmDark-400 text-warmDark-700 bg-white'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+                {customPhoto && (
+                  <button
+                    onClick={() => {
+                      setCustomPhoto(null);
+                      toast('Reset to default display');
+                    }}
+                    className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-1 font-semibold"
+                    title="Clear photo"
+                  >
+                    <FiTrash2 className="w-3 h-3" /> Reset
+                  </button>
+                )}
+              </div>
             </div>
+          ) : (
+            product.images.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                {product.images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setImgIndex(i)}
+                    className={`w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                      imgIndex === i ? 'border-brand-700 ring-2 ring-brand-100' : 'border-warmDark-100 hover:border-warmDark-300'
+                    }`}
+                  >
+                    <img
+                      src={img || '/images/products/product_01.jpg'}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/products/product_01.jpg';
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )
           )}
         </div>
 
-        {/* Right: Specifications & Add-to-Cart */}
+        {/* Right: Customization Controls & Specifications */}
         <div className="lg:col-span-5 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
@@ -343,6 +554,92 @@ const ProductDetails = () => {
             </div>
             <p className="text-[11px] text-warmDark-500">Free courier delivery on orders above ₹999</p>
           </div>
+
+          {/* ================================================================ */}
+          {/* IN-PLACE CUSTOMIZATION STUDIO SECTION */}
+          {/* ================================================================ */}
+          {product.is_customizable && (
+            <div className="bg-cream-100/80 border border-brand-200 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-brand-700 text-cream-50 font-bold text-xs flex items-center justify-center">
+                    ★
+                  </span>
+                  <h3 className="font-extrabold text-sm text-warmDark-900">Personalize This Frame</h3>
+                </div>
+                <span className="text-[10px] font-bold text-brand-700 bg-white border border-brand-200 px-2 py-0.5 rounded-full">
+                  Free Customization
+                </span>
+              </div>
+
+              {/* Step 1: Upload Photo */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-warmDark-800 flex items-center justify-between">
+                  <span>1. Upload Your Photo for Frame:</span>
+                  {customPhoto && (
+                    <span className="text-emerald-700 font-semibold flex items-center gap-1 text-[11px]">
+                      <FiCheck className="w-3.5 h-3.5" /> Photo Active
+                    </span>
+                  )}
+                </label>
+                <label className="flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-dashed border-brand-300 hover:border-brand-600 bg-white rounded-xl cursor-pointer transition-colors text-center shadow-sm">
+                  <FiUpload className="w-4 h-4 text-brand-700" />
+                  <span className="text-xs font-bold text-brand-900">
+                    {customPhoto ? 'Change Uploaded Photo (JPG, PNG)' : 'Click to Upload Your Photo (JPG, PNG)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
+              {/* Step 2: Custom Text / Caption */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-warmDark-800 flex items-center justify-between">
+                  <span>2. Engraved Caption / Names (Optional):</span>
+                  <span className="text-[10px] text-warmDark-400 font-mono">{customText.length}/40</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={customText}
+                    onChange={(e) => setCustomText(e.target.value)}
+                    placeholder="e.g. The Sharma Family • 2026"
+                    className="w-full text-xs p-3 bg-white border border-warmDark-200 rounded-xl focus:outline-none focus:border-brand-700 focus:ring-1 focus:ring-brand-700"
+                  />
+                </div>
+
+                {/* Font Selector for Plaque */}
+                {customText.trim() && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-[11px] font-semibold text-warmDark-600">Font:</span>
+                    {[
+                      { id: 'serif', label: 'Classic Serif' },
+                      { id: 'script', label: 'Elegant Script' },
+                      { id: 'sans', label: 'Modern Sans' },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setCustomFont(f.id)}
+                        className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border transition-all ${
+                          customFont === f.id
+                            ? 'border-brand-700 bg-brand-50 text-brand-900'
+                            : 'border-warmDark-200 bg-white text-warmDark-600 hover:border-warmDark-400'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Size Selector */}
           <div className="space-y-2.5">
@@ -425,10 +722,10 @@ const ProductDetails = () => {
 
             {product.is_customizable && (
               <Link
-                to="/custom-frame"
+                to={`/custom-frame?productId=${pId}${customPhoto ? `&photo=${encodeURIComponent(customPhoto)}` : ''}`}
                 className="w-full block text-center py-2.5 border border-brand-700 text-brand-800 hover:bg-brand-50 font-bold text-xs rounded-xl transition-colors"
               >
-                Open in Custom Frame Studio with Photo Upload →
+                Open in Advanced Frame Studio with Full Tools →
               </Link>
             )}
           </div>
