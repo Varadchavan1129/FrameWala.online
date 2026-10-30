@@ -53,11 +53,11 @@ const Dashboard = () => {
     .reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
 
   // Gather unique customers emails from orders
-  const uniqueCustomers = new Set(orders.map((o) => o.email)).size;
+  const uniqueCustomers = new Set(orders.map((o) => o.email).filter(Boolean)).size;
 
   const cardStats = [
     { label: 'Total Products', value: productsCount, icon: FiBox, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-    { label: 'Total Customers', value: uniqueCustomers || 2, icon: FiUsers, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
+    { label: 'Total Customers', value: uniqueCustomers, icon: FiUsers, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
     { label: 'Total Orders', value: totalOrders, icon: FiTrendingUp, color: 'text-teal-600 bg-teal-50 border-teal-100' },
     { label: 'Total Revenue', value: `₹${revenue.toLocaleString('en-IN')}`, icon: FiDollarSign, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
     { label: 'Pending Orders', value: pendingOrders, icon: FiClock, color: 'text-yellow-600 bg-yellow-50 border-yellow-100' },

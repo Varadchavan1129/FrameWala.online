@@ -5,10 +5,15 @@ import db from '../config/db.js';
 
 class Category {
   /**
-   * Fetch all categories
+   * Fetch categories (supports optional includeInactive flag)
    */
-  static async findAll() {
-    const [rows] = await db.query('SELECT * FROM categories ORDER BY category_name ASC');
+  static async findAll(includeInactive = false) {
+    let sql = 'SELECT * FROM categories';
+    if (!includeInactive) {
+      sql += ' WHERE is_active = 1';
+    }
+    sql += ' ORDER BY category_name ASC';
+    const [rows] = await db.query(sql);
     return rows;
   }
 

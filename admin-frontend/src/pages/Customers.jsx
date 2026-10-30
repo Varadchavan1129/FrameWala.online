@@ -42,16 +42,7 @@ const Customers = () => {
         });
 
         // Convert mapped values to list
-        let customersList = Object.values(customerMap);
-        
-        // Add defaults if database is empty or small
-        if (customersList.length === 0) {
-          customersList = [
-            { userId: 2, name: 'Raj Sharma', email: 'raj.sharma@example.com', phone: '9876543211', orderCount: 2, totalSpent: 998.00 },
-            { userId: 3, name: 'Priya Patel', email: 'priya.patel@example.com', phone: '9876543212', orderCount: 1, totalSpent: 799.00 }
-          ];
-        }
-
+        const customersList = Object.values(customerMap);
         setCustomers(customersList);
       }
     } catch (error) {

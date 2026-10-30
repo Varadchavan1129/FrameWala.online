@@ -48,7 +48,7 @@ export const getProductById = async (req, res, next) => {
  */
 export const createProduct = async (req, res, next) => {
   try {
-    const { category_id, product_name, description, price, stock_quantity, is_customizable, is_active, images, template_image, print_area_json } = req.body;
+    const { category_id, product_code, product_name, description, price, stock_quantity, is_customizable, is_active, images, template_image, print_area_json } = req.body;
 
     if (!product_name || !price) {
       return res.status(400).json(sendError('Product name and price are required.'));
@@ -70,6 +70,7 @@ export const createProduct = async (req, res, next) => {
 
     const newProductId = await Product.create({
       category_id,
+      product_code,
       product_name,
       description,
       price,

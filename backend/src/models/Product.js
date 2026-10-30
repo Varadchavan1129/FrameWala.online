@@ -90,38 +90,51 @@ class Product {
   }
 
   /**
-   * Insert a new product
+   * Insert a new product with product_code
    */
-  static async create({ category_id, product_name, description, price, stock_quantity, is_customizable, is_active = true, template_image = null, print_area_json = null }) {
+  static async create({ category_id, product_code = null, product_name, description, price, stock_quantity, is_customizable, is_active = true, template_image = null, print_area_json = null }) {
     const [result] = await db.query(
-      `INSERT INTO products (category_id, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [category_id || null, product_name, description || null, price, stock_quantity || 0, is_customizable ? 1 : 0, is_active ? 1 : 0, template_image, print_area_json]
+      `INSERT INTO products (category_id, product_code, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [category_id || null, product_code || null, product_name, description || null, price, stock_quantity || 0, is_customizable ? 1 : 0, is_active ? 1 : 0, template_image, print_area_json]
     );
-    return result.insertId;
+    const newId = result.insertId;
+
+    if (!product_code) {
+      const generatedCode = `FW-FRM-${String(newId).padStart(4, '0')}`;
+      await db.query('UPDATE products SET product_code = ? WHERE product_id = ?', [generatedCode, newId]);
+    }
+
+    return newId;
   }
 
   /**
    * Update an existing product
    */
-  static async update(id, { category_id, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json }) {
-    const [result] = await db.query(
-      `UPDATE products 
-       SET category_id = ?, product_name = ?, description = ?, price = ?, stock_quantity = ?, is_customizable = ?, is_active = ?, template_image = ?, print_area_json = ? 
-       WHERE product_id = ?`,
-      [
-        category_id || null, 
-        product_name, 
-        description || null, 
-        price, 
-        stock_quantity || 0, 
-        is_customizable ? 1 : 0, 
-        is_active !== undefined ? (is_active ? 1 : 0) : 1,
-        template_image !== undefined ? template_image : null,
-        print_area_json !== undefined ? print_area_json : null,
-        id
-      ]
-    );
+  static async update(id, { category_id, product_code, product_name, description, price, stock_quantity, is_customizable, is_active, template_image, print_area_json }) {
+    let sql = `UPDATE products 
+       SET category_id = ?, product_name = ?, description = ?, price = ?, stock_quantity = ?, is_customizable = ?, is_active = ?, template_image = ?, print_area_json = ?`;
+    const params = [
+      category_id || null, 
+      product_name, 
+      description || null, 
+      price, 
+      stock_quantity || 0, 
+      is_customizable ? 1 : 0, 
+      is_active !== undefined ? (is_active ? 1 : 0) : 1,
+      template_image !== undefined ? template_image : null,
+      print_area_json !== undefined ? print_area_json : null,
+    ];
+
+    if (product_code) {
+      sql += `, product_code = ?`;
+      params.push(product_code);
+    }
+
+    sql += ` WHERE product_id = ?`;
+    params.push(id);
+
+    const [result] = await db.query(sql, params);
     return result.affectedRows > 0;
   }
 
