@@ -1,0 +1,12 @@
+{
+  "name": "framewala-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FrameWala.online - Online Photo Frame and Personalized Gifts Store",
+  "scripts": {
+    "build": "npm --prefix frontend run build",
+    "install:frontend": "npm --prefix frontend install",
+    "install:admin": "npm --prefix admin-frontend install",
+    "install:backend": "npm --prefix backend install"
+  }
+}
