@@ -7,11 +7,15 @@ import { sendSuccess, sendError } from '../utils/responseHelper.js';
 
 /**
  * GET /api/products
+ * Public endpoint — always returns only active products by default.
  * Query Parameters: categoryId, minPrice, maxPrice, search, isCustomizable
  */
 export const getProducts = async (req, res, next) => {
   try {
-    const { categoryId, minPrice, maxPrice, search, isCustomizable, isActive } = req.query;
+    const { categoryId, minPrice, maxPrice, search, isCustomizable } = req.query;
+    // Public catalog always shows only active products.
+    // Inactive / soft-deleted products are never exposed to customers.
+    const isActive = 'true';
     
     const products = await Product.findAll({
       categoryId,
@@ -30,11 +34,16 @@ export const getProducts = async (req, res, next) => {
 
 /**
  * GET /api/products/:id
+ * Public endpoint — returns 404 if the product is inactive or soft-deleted.
  */
 export const getProductById = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) {
+      return res.status(404).json(sendError('Product not found.'));
+    }
+    // Do not expose inactive/soft-deleted products to public customers
+    if (!product.is_active) {
       return res.status(404).json(sendError('Product not found.'));
     }
     res.status(200).json(sendSuccess('Product details retrieved successfully.', { product }));

@@ -1,32 +1,38 @@
-// Home.jsx — FrameWala homepage matching the reference design.
+// Home.jsx — Redesigned FrameWala storefront specializing in photo frames.
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ProductCard from '../../components/customer/ProductCard.jsx';
-import SupabaseStatus from '../../components/common/SupabaseStatus.jsx';
-import { formatINR } from '../../utils/formatters.js';
+import { CATEGORY_TILES, HIGHLIGHTS } from '../../constants/productConstants.js';
 import { getProducts } from '../../services/productService.js';
 import {
-  FiArrowRight, FiImage, FiZap, FiCoffee, FiTag, FiSquare, FiKey, FiSmartphone,
-  FiGift, FiCheckCircle, FiStar, FiShield, FiHeadphones, FiUpload, FiSliders,
-  FiShoppingBag, FiTruck, FiRefreshCw, FiAward,
+  FiArrowRight, FiImage, FiGrid, FiSliders, FiHeart, FiUsers,
+  FiCheckCircle, FiShield, FiTruck, FiHeadphones, FiUpload,
+  FiAward, FiShoppingBag, FiStar
 } from 'react-icons/fi';
 
-const iconMap = { image: FiImage, zap: FiZap, coffee: FiCoffee, tag: FiTag, square: FiSquare, key: FiKey, phone: FiSmartphone, gift: FiGift };
+const iconMap = {
+  image: FiImage,
+  grid: FiGrid,
+  sliders: FiSliders,
+  heart: FiHeart,
+  users: FiUsers,
+};
 
-const fadeUp = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } } };
+const fadeUp = { hidden: { opacity: 0, y: 25 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } } };
 const stagger = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08 } } };
 
-const SectionHead = ({ eyebrow, title, to }) => (
-  <div className="flex items-end justify-between gap-4 mb-7">
+const SectionHead = ({ eyebrow, title, subtitle, to }) => (
+  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
     <div>
       {eyebrow && <span className="text-xs font-bold uppercase tracking-widest text-brand-600">{eyebrow}</span>}
       <h2 className="text-2xl sm:text-3xl font-extrabold text-warmDark-900 tracking-tight mt-1">{title}</h2>
+      {subtitle && <p className="text-warmDark-500 text-sm mt-1">{subtitle}</p>}
     </div>
     {to && (
-      <Link to={to} className="text-xs font-bold text-brand-600 hover:text-brand-800 transition-colors flex items-center gap-1 shrink-0">
-        View All <FiArrowRight className="w-3.5 h-3.5" />
+      <Link to={to} className="text-xs font-bold text-brand-700 hover:text-brand-900 transition-colors flex items-center gap-1.5 shrink-0">
+        View All Frames <FiArrowRight className="w-3.5 h-3.5" />
       </Link>
     )}
   </div>
@@ -43,22 +49,29 @@ const Home = () => {
       setError(null);
       try {
         const prodRes = await getProducts();
-        
-        const mappedProducts = (prodRes.data?.products || prodRes.products || []).map(p => ({
-          id: p.product_id,
-          name: p.product_name,
-          subtitle: p.description,
-          price: p.price,
-          mrp: p.price * 1.2, // Mock MRP
-          primary_image: p.primary_image || '/api/images/products/product_01.jpg',
-          rating: '4.8', // Mock rating
-          review_count: 120 // Mock review count
+        const rawList = Array.isArray(prodRes?.data?.products)
+          ? prodRes.data.products
+          : (Array.isArray(prodRes?.products)
+            ? prodRes.products
+            : (Array.isArray(prodRes) ? prodRes : []));
+
+        const mappedProducts = rawList.map(p => ({
+          ...p,
+          id: p.product_id || p.id,
+          name: p.product_name || p.name,
+          subtitle: p.description || p.subtitle || '',
+          price: Number(p.price) || 0,
+          mrp: Number(p.mrp) || Math.round((Number(p.price) || 0) * 1.25),
+          primary_image: p.primary_image || '/images/products/product_01.jpg',
+          product_code: p.product_code || `FW-FRM-${String(p.product_id || p.id).padStart(4, '0')}`,
+          rating: p.rating ? Number(p.rating) : null,
+          review_count: Number(p.review_count) || 0,
         }));
 
         setProducts(mappedProducts);
       } catch (err) {
         console.error("Backend API Error:", err);
-        setError(err.message || "Failed to load data from Backend API.");
+        setError(err.message || "Failed to load products from catalog.");
       } finally {
         setLoading(false);
       }
@@ -69,188 +82,261 @@ const Home = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh] pb-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-700"></div>
+      <div className="flex flex-col justify-center items-center min-h-[60vh] gap-3">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-brand-200 border-t-brand-700"></div>
+        <p className="text-xs font-bold text-warmDark-500 uppercase tracking-wider">Loading Frame Collection...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh] pb-4">
-        <div className="bg-red-50 border border-red-200 text-red-600 p-8 rounded-2xl shadow-sm text-center max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-2">Error Loading Data</h2>
+      <div className="flex justify-center items-center min-h-[60vh] pb-4 px-4">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-8 rounded-2xl shadow-sm text-center max-w-md mx-auto">
+          <h2 className="text-xl font-bold mb-2">Error Loading Catalog</h2>
           <p className="text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  const isEmpty = products.length === 0;
-  if (isEmpty) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh] pb-4">
-        <div className="bg-cream-50 border border-warmDark-200 text-warmDark-600 p-8 rounded-2xl shadow-sm text-center max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-2">No Data Available</h2>
-          <p className="text-sm">We couldn't find any products or categories.</p>
-        </div>
-      </div>
-    );
-  }
-
   const bestSellers = products.slice(0, 5);
-  const newArrivals = products.slice(5, 10);
+  const collageFrames = products.filter(p => (p.category_name && p.category_name.toLowerCase().includes('collage')) || p.category_id === 2);
+  const personalizedFrames = products.filter(p => p.is_customizable || p.category_id === 3);
+  const newArrivals = products.slice(5, 10).length > 0 ? products.slice(5, 10) : products.slice(0, 5);
 
   return (
-    <div className="pb-4">
-      {/* HERO */}
-      <section className="bg-gradient-to-b from-cream-200/80 to-cream-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-16 pb-8">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-6">
-              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-warmDark-700">
-                Turn Your Memories Into Masterpieces <FiStar className="w-4 h-4 text-gold-400 fill-current" />
+    <div className="space-y-16 pb-16">
+      {/* 1. HERO BANNER */}
+      <section className="bg-gradient-to-b from-cream-200/90 via-cream-100 to-cream-50 border-b border-warmDark-100/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-12 lg:pb-20">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            <motion.div initial="hidden" animate="visible" variants={stagger} className="lg:col-span-7 space-y-6">
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 bg-gold-100 text-brand-900 rounded-full text-xs font-bold uppercase tracking-wider border border-gold-200">
+                <span>Handcrafted with Care</span>
+                <span className="text-gold-600">•</span>
+                <span className="text-gold-600 font-extrabold">100% Solid Wood</span>
               </motion.div>
-              <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-warmDark-900 leading-[1.02] tracking-tight">
-                Personalized Frames,<br />
-                <span className="text-brand-700">Made Just For You</span>
+
+              <motion.h1 variants={fadeUp} className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-warmDark-900 leading-[1.08] tracking-tight">
+                Turn Cherished Memories Into <span className="text-brand-700 underline decoration-gold-400 decoration-4 underline-offset-8">Masterpieces</span>
               </motion.h1>
-              <motion.p variants={fadeUp} className="text-warmDark-600 text-base sm:text-lg max-w-md leading-relaxed">
-                Upload your photos, customize your frame, and cherish your memories forever.
+
+              <motion.p variants={fadeUp} className="text-warmDark-600 text-base sm:text-lg max-w-xl leading-relaxed">
+                Explore India’s premium collection of collage photo frames, personalized wall galleries, and anniversary keepsakes crafted to last generations.
               </motion.p>
 
-              <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-lg">
+              {/* Value Badges */}
+              <motion.div variants={fadeUp} className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                 {[
-                  { icon: FiImage, l1: 'Custom', l2: 'Photo Frames' },
-                  { icon: FiGift, l1: 'Perfect', l2: 'For Gifting' },
-                  { icon: FiShield, l1: 'Premium', l2: 'Quality' },
-                  { icon: FiTruck, l1: 'Fast & Safe', l2: 'Delivery' },
+                  { icon: FiImage, l1: 'Collage', l2: 'Frames' },
+                  { icon: FiAward, l1: 'Museum', l2: 'UV Glass' },
+                  { icon: FiShield, l1: 'Solid', l2: 'Wood Core' },
+                  { icon: FiTruck, l1: 'Safely', l2: 'Delivered' },
                 ].map((f, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-gold-100 text-brand-700 flex items-center justify-center shrink-0"><f.icon className="w-4 h-4" /></div>
-                    <div className="text-[11px] font-bold text-warmDark-800 leading-tight">{f.l1}<br />{f.l2}</div>
+                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-xl bg-white/70 border border-warmDark-100/50 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg bg-gold-100 text-brand-800 flex items-center justify-center shrink-0">
+                      <f.icon className="w-4 h-4" />
+                    </div>
+                    <div className="text-[11px] font-bold text-warmDark-900 leading-tight">
+                      {f.l1}<br />{f.l2}
+                    </div>
                   </div>
                 ))}
               </motion.div>
 
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-3 pt-1">
-                <Link to="/products" className="px-8 py-4 bg-warmDark-900 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm shadow-warm-md transition-all active:scale-95 flex items-center gap-2" data-testid="hero-shop-now">
-                  Shop Now <FiArrowRight className="w-4 h-4" />
+              {/* CTA Buttons */}
+              <motion.div variants={fadeUp} className="flex flex-wrap gap-3.5 pt-2">
+                <Link to="/products" className="px-8 py-4 bg-brand-700 hover:bg-brand-800 text-cream-50 rounded-full font-bold text-sm shadow-warm-md hover:shadow-warm-lg transition-all active:scale-95 flex items-center gap-2" data-testid="hero-shop-now">
+                  Explore All Frames <FiArrowRight className="w-4 h-4" />
                 </Link>
-                <Link to="/custom-frame" className="px-8 py-4 bg-white hover:bg-cream-100 text-warmDark-900 border border-warmDark-200 rounded-full font-bold text-sm shadow-warm-sm transition-all active:scale-95 flex items-center gap-2" data-testid="hero-customize">
-                  Customize Now <FiUpload className="w-4 h-4" />
+                <Link to="/custom-frame" className="px-7 py-4 bg-white hover:bg-cream-100 text-warmDark-900 border border-warmDark-200 rounded-full font-bold text-sm shadow-warm-sm transition-all active:scale-95 flex items-center gap-2" data-testid="hero-customize">
+                  <FiUpload className="w-4 h-4 text-brand-700" /> Custom Frame Studio
                 </Link>
               </motion.div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="relative hidden lg:block">
-              <div className="relative rounded-3xl overflow-hidden shadow-warm-lg border border-white/60">
-                <img src="/images/hero_frame.jpg" alt="Personalized photo frames" className="w-full h-[440px] object-cover" />
-              </div>
-              <div className="absolute -bottom-5 -left-5 w-36 h-44 rounded-2xl overflow-hidden shadow-warm-lg border-4 border-white rotate-[-6deg]">
-                <img src="/images/products/product_04.jpg" alt="Heart frame" className="w-full h-full object-cover" />
-              </div>
-              <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-warm-lg px-4 py-3 flex items-center gap-2 border border-warmDark-100">
-                <div className="w-9 h-9 rounded-lg bg-brand-600 text-white flex items-center justify-center font-extrabold text-xs">4.8★</div>
-                <div className="text-[11px] font-bold text-warmDark-900 leading-tight">10,000+<br /><span className="text-warmDark-500 font-medium">Happy Frames</span></div>
+            {/* Hero Image Showcase */}
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.7, ease: 'easeOut' }}
+              className="lg:col-span-5 relative">
+              <div className="relative rounded-3xl overflow-hidden shadow-warm-lg border-4 border-white bg-cream-100">
+                <img
+                  src="/images/hero_frame.jpg"
+                  alt="Premium Personalized Photo Frames"
+                  className="w-full h-[400px] sm:h-[460px] object-cover"
+                  onError={(e) => { e.currentTarget.src = '/images/products/product_01.jpg'; }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur rounded-2xl p-4 border border-white/50 shadow-md flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-brand-700">Flagship Series</p>
+                    <p className="font-extrabold text-sm text-warmDark-900">Collage Photo Frame (8x10)</p>
+                  </div>
+                  <span className="font-mono font-bold text-xs bg-warmDark-900 text-cream-50 px-2.5 py-1 rounded-md">
+                    FW-FRM-0001
+                  </span>
+                </div>
               </div>
             </motion.div>
           </div>
-
-          {/* Stats bar */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="mt-10 bg-white rounded-3xl shadow-warm-md border border-warmDark-100/60 grid grid-cols-2 md:grid-cols-4 divide-x divide-cream-200">
-            {[
-              { icon: FiCheckCircle, big: '10K+', small: 'Happy Customers' },
-              { icon: FiStar, big: '4.8', small: 'Average Rating' },
-              { icon: FiShield, big: '100% Secure', small: 'Payments' },
-              { icon: FiHeadphones, big: '24/7', small: 'Customer Support' },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center gap-3 p-5">
-                <div className="w-11 h-11 rounded-xl bg-gold-100 text-brand-700 flex items-center justify-center shrink-0"><s.icon className="w-5 h-5" /></div>
-                <div><p className="font-extrabold text-warmDark-900 text-base leading-tight">{s.big}</p><p className="text-xs text-warmDark-500">{s.small}</p></div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-16">
-
-        {/* BEST SELLERS */}
-        <section>
-          <SectionHead eyebrow="Most Loved" title="Best Sellers" to="/products?sort=bestseller" />
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={stagger}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
-            {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
-          </motion.div>
-        </section>
-
-        {/* CUSTOMIZE YOUR FRAME */}
-        <section className="bg-gradient-to-br from-cream-200/70 to-cream-100 rounded-3xl border border-warmDark-100/60 p-8 lg:p-12">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
-            <div className="space-y-6">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-brand-600">Simple 4-Step Journey</span>
-                <h2 className="text-3xl font-extrabold text-warmDark-900 tracking-tight mt-1">Customize Your Frame</h2>
-                <p className="text-warmDark-600 text-sm mt-2">Create something unique in just a few simple steps.</p>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {[
-                  { icon: FiImage, t: 'Choose Frame', d: 'Pick a design' },
-                  { icon: FiUpload, t: 'Upload Photo', d: 'Add your memory' },
-                  { icon: FiSliders, t: 'Customize', d: 'Adjust & preview' },
-                  { icon: FiShoppingBag, t: 'Place Order', d: 'We deliver joy' },
-                ].map((s, i) => (
-                  <div key={i} className="text-center space-y-2">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-white border border-warmDark-100 text-brand-700 flex items-center justify-center shadow-warm-sm"><s.icon className="w-5 h-5" /></div>
-                    <p className="text-xs font-extrabold text-warmDark-900">{s.t}</p>
-                    <p className="text-[10px] text-warmDark-500">{s.d}</p>
-                  </div>
-                ))}
-              </div>
-              <Link to="/custom-frame" className="inline-flex items-center gap-2 px-7 py-3.5 bg-brand-600 hover:bg-brand-700 text-cream-50 rounded-full font-bold text-sm shadow-warm-md transition-all active:scale-95" data-testid="customize-cta">
-                Start Customizing <FiArrowRight className="w-4 h-4" />
+      {/* 2. SHOP BY CATEGORY TILES */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow="Curated Styles"
+          title="Shop by Frame Category"
+          subtitle="Discover the perfect frame for every wall, desk, and memory"
+          to="/products"
+        />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
+          {CATEGORY_TILES.map((cat) => {
+            const Icon = iconMap[cat.icon] || FiImage;
+            return (
+              <Link
+                key={cat.id}
+                to={cat.path}
+                className="group p-5 bg-white border border-warmDark-100/80 hover:border-brand-500 rounded-2xl shadow-warm-sm hover:shadow-warm-md transition-all flex flex-col justify-between"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gold-100 group-hover:bg-brand-700 text-brand-800 group-hover:text-cream-50 flex items-center justify-center transition-colors mb-4">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-warmDark-900 text-sm group-hover:text-brand-700 transition-colors">
+                    {cat.label}
+                  </h3>
+                  <p className="text-warmDark-500 text-xs mt-1 line-clamp-1">{cat.desc}</p>
+                </div>
               </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 3. BEST-SELLING PHOTO FRAMES */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow="Most Loved"
+          title="Best-Selling Photo Frames"
+          subtitle="Customer favorites backed by craftsmanship and rave reviews"
+          to="/products?sort=bestseller"
+        />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+          {bestSellers.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      </section>
+
+      {/* 4. CUSTOM FRAME STUDIO BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gradient-to-br from-brand-900 to-warmDark-900 text-cream-50 rounded-3xl p-8 sm:p-12 shadow-warm-lg overflow-hidden relative">
+          <div className="grid lg:grid-cols-12 gap-8 items-center relative z-10">
+            <div className="lg:col-span-7 space-y-5">
+              <span className="inline-block px-3 py-1 bg-gold-400 text-warmDark-950 rounded-full text-xs font-extrabold uppercase tracking-wider">
+                Interactive Frame Studio
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                Preview Your Photos in Real Frames Before You Buy
+              </h2>
+              <p className="text-cream-200 text-sm sm:text-base leading-relaxed max-w-xl">
+                Upload your portrait or family pictures, test finishes like Natural Oak, Dark Walnut, and Matte Black, and pick the perfect size for your living room gallery.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Link to="/custom-frame" className="px-8 py-3.5 bg-gold-400 hover:bg-gold-500 text-warmDark-950 font-extrabold rounded-full text-sm shadow transition-all active:scale-95 flex items-center gap-2">
+                  Launch Studio Now <FiArrowRight className="w-4 h-4" />
+                </Link>
+                <Link to="/products?category=2" className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-cream-50 border border-white/20 font-bold rounded-full text-sm transition-all">
+                  Browse Collage Styles
+                </Link>
+              </div>
             </div>
-            <div className="relative rounded-2xl overflow-hidden shadow-warm-lg border-4 border-white">
-              <img src="/images/custom_section.png" alt="Customize your frame" className="w-full h-72 object-cover"
-                onError={(e) => { e.currentTarget.src = '/images/products/product_01.jpg'; }} />
+            <div className="lg:col-span-5">
+              <div className="rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl">
+                <img
+                  src="/images/custom_section.png"
+                  alt="Custom Frame Studio Preview"
+                  className="w-full h-64 object-cover"
+                  onError={(e) => { e.currentTarget.src = '/images/products/product_01.jpg'; }}
+                />
+              </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 5. COLLAGE & MULTI-OPENING FRAMES */}
+      {collageFrames.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHead
+            eyebrow="Storytelling Walls"
+            title="Multi-Photo Collage Frames"
+            subtitle="Display 4, 6, or 9 memorable moments in a single harmonious centerpiece"
+            to="/products?category=2"
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {collageFrames.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
         </section>
+      )}
 
-        {/* NEW ARRIVALS */}
-        <section>
-          <SectionHead eyebrow="Fresh In" title="New Arrivals" to="/products" />
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }} variants={stagger}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
-            {newArrivals.map((p) => <ProductCard key={p.id} product={p} />)}
-          </motion.div>
+      {/* 6. PERSONALIZED PHOTO GIFTS */}
+      {personalizedFrames.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <SectionHead
+            eyebrow="Custom Engraving & Themes"
+            title="Personalized Keepsakes"
+            subtitle="Frames customized with names, anniversary dates, and celebratory messages"
+            to="/products?category=3"
+          />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {personalizedFrames.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
         </section>
+      )}
 
-        {/* PROMO BANNERS */}
-        {/* Removed unrelated promo banners */}
-
-        {/* VALUE PROPS */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { icon: FiRefreshCw, t: 'Easy Returns', d: 'Hassle free returns' },
-            { icon: FiShield, t: 'Secure Payments', d: '100% protected' },
-            { icon: FiAward, t: 'Premium Quality', d: 'The best for you' },
-            { icon: FiTruck, t: 'Fast Delivery', d: 'On time, every time' },
-          ].map((v, i) => (
-            <div key={i} className="flex items-center gap-3 bg-white border border-warmDark-100/60 rounded-2xl p-4 shadow-warm-sm">
-              <div className="w-11 h-11 rounded-xl bg-gold-100 text-brand-700 flex items-center justify-center shrink-0"><v.icon className="w-5 h-5" /></div>
-              <div><p className="font-bold text-warmDark-900 text-sm">{v.t}</p><p className="text-xs text-warmDark-500">{v.d}</p></div>
-            </div>
+      {/* 7. NEW ARRIVALS */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <SectionHead
+          eyebrow="Fresh In Studio"
+          title="New Arrivals"
+          subtitle="Explore the latest handcrafted profiles, shadow boxes, and gallery collections"
+          to="/products?sort=newest"
+        />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+          {newArrivals.map((p) => (
+            <ProductCard key={p.id} product={p} />
           ))}
-        </section>
-      </div>
+        </div>
+      </section>
 
-      {/* Supabase connection status — dev-only badge, hidden in production */}
-      <SupabaseStatus />
+      {/* 8. WHY CHOOSE FRAMEWALA */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-cream-100/70 border border-warmDark-100/70 rounded-3xl p-8 sm:p-12">
+          <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-brand-600">The FrameWala Standard</span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-warmDark-900 tracking-tight">
+              Why 10,000+ Homes Trust Our Frames
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {HIGHLIGHTS.map((h, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-warmDark-100/60 shadow-sm space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-gold-100 text-brand-800 flex items-center justify-center">
+                  <FiCheckCircle className="w-6 h-6 text-brand-700" />
+                </div>
+                <h3 className="font-extrabold text-warmDark-900 text-base">{h.title}</h3>
+                <p className="text-xs text-warmDark-500 leading-relaxed">{h.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

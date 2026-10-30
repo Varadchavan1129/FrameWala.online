@@ -221,10 +221,10 @@ INSERT INTO products (product_id, category_id, product_name, description, price,
 ON CONFLICT (product_id) DO NOTHING;
 
 INSERT INTO product_images (image_id, product_id, image_url, display_order, is_primary) VALUES
-(1, 1, 'https://images.cloudinary.com/framewala/collage_frame.jpg', 1, TRUE),
-(2, 1, 'https://images.cloudinary.com/framewala/collage_frame_back.jpg', 2, FALSE),
-(3, 1, 'https://images.cloudinary.com/framewala/collage_frame_wall.jpg', 3, FALSE),
-(4, 2, 'https://images.cloudinary.com/framewala/classic_wooden.jpg', 1, TRUE)
+(1, 1, '/images/products/product_01.jpg', 1, TRUE),
+(2, 1, '/images/products/product_02.jpg', 2, FALSE),
+(3, 1, '/images/products/product_03.jpg', 3, FALSE),
+(4, 2, '/images/products/product_02.jpg', 1, TRUE)
 ON CONFLICT (image_id) DO NOTHING;
 
 INSERT INTO addresses (address_id, user_id, full_name, phone, address_line, city, state, pincode) VALUES

@@ -161,14 +161,22 @@ const OrderDetail = () => {
               {order.items.map(item => (
                 <div key={item.order_item_id} className="flex gap-4 sm:gap-6">
                   <div className="w-20 h-20 sm:w-24 sm:h-24 bg-cream-100 rounded-2xl overflow-hidden shrink-0 border border-cream-200">
-                    <img src={item.primary_image || 'https://via.placeholder.com/150'} alt={item.product_name} className="w-full h-full object-cover" />
+                    <img src={item.primary_image || '/images/products/product_01.jpg'}
+                      onError={(e) => { if (!e.currentTarget.dataset.errored) { e.currentTarget.dataset.errored = '1'; e.currentTarget.src = '/images/products/product_01.jpg'; } }} alt={item.product_name} className="w-full h-full object-cover" />
                   </div>
                   
                   <div className="flex-grow flex flex-col justify-between">
                     <div>
                       <h3 className="font-extrabold text-warmDark-900 text-sm sm:text-base">{item.product_name}</h3>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-warmDark-500 mt-1">
+                        {item.size && <span>Size: <strong className="text-warmDark-800">{item.size}</strong></span>}
+                        {(item.finish || item.color || item.frame_color || item.mug_color) && (
+                          <span>Color: <strong className="text-warmDark-800">{item.finish || item.color || item.frame_color || item.mug_color}</strong></span>
+                        )}
+                        {item.custom_text && <span>Text: <strong className="text-brand-700 italic">"{item.custom_text}"</strong></span>}
+                      </div>
                       {(item.custom_text || item.custom_image_url) && (
-                        <p className="text-xs text-brand-600 font-semibold mt-1 bg-brand-50 inline-block px-2 py-0.5 rounded">Customized</p>
+                        <p className="text-[11px] text-brand-600 font-bold mt-1 bg-brand-50 inline-block px-2 py-0.5 rounded">Customized</p>
                       )}
                     </div>
                     <div className="flex justify-between items-end mt-2">

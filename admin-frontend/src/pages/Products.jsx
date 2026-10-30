@@ -183,23 +183,38 @@ const Products = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this product permanently?')) return;
+  const handleDelete = async (id, name) => {
+    const confirmed = window.confirm(
+      `Delete "${name}"?\n\nIf this product has existing orders, it will be deactivated (hidden from public catalog) instead of permanently removed.`
+    );
+    if (!confirmed) return;
 
     try {
       const res = await deleteProduct(id);
       if (res.success) {
-        toast.success('Product deleted.');
-        loadData();
+        if (res.data?.soft_deleted) {
+          // Product had orders — was soft-deleted (deactivated)
+          toast.success('Product deactivated and hidden from the public catalog.');
+          // Update the product row in-place to show Inactive status
+          setProducts(prev =>
+            prev.map(p => p.product_id === id ? { ...p, is_active: 0 } : p)
+          );
+        } else {
+          // Product was permanently deleted
+          toast.success('Product permanently deleted.');
+          // Remove the row immediately
+          setProducts(prev => prev.filter(p => p.product_id !== id));
+        }
       }
     } catch (error) {
-      toast.error('Failed to delete product. Check if it is referenced in active orders.');
+      const msg = error.response?.data?.message || 'Failed to delete product.';
+      toast.error(msg);
     }
   };
 
   // Client-side filtration & sorting logs
   let filteredProducts = products.filter(prod => {
-    const matchesSearch = prod.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = prod.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || (prod.product_code && prod.product_code.toLowerCase().includes(searchQuery.toLowerCase())) || 
                           (prod.category_name && prod.category_name.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesCategory = selectedCategory === '' || Number(prod.category_id) === Number(selectedCategory);
     return matchesSearch && matchesCategory;
@@ -299,7 +314,8 @@ const Products = () => {
             <table className="w-full text-left text-xs font-semibold border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100 text-slate-400 text-[10px] uppercase">
-                  <th className="p-4 pl-6">Image</th>
+                  <th className="p-4 pl-6">Product Code</th>
+                  <th className="p-4">Image</th>
                   <th className="p-4">Name</th>
                   <th className="p-4">Category</th>
                   <th className="p-4">Price</th>
@@ -311,7 +327,8 @@ const Products = () => {
               <tbody className="divide-y divide-slate-100">
                 {filteredProducts.map((prod) => (
                   <tr key={prod.product_id} className="hover:bg-slate-50/50">
-                    <td className="p-4 pl-6">
+                    <td className="p-4 pl-6 font-mono text-[11px] font-bold text-slate-700 bg-slate-50/50 rounded-l-lg">{prod.product_code || `FW-FRM-${String(prod.product_id).padStart(4, "0")}`}</td>
+                    <td className="p-4">
                       <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg overflow-hidden shrink-0">
                         <img 
                           src={prod.primary_image || 'https://via.placeholder.com/100?text=No+Image'} 

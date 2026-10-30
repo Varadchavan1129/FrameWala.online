@@ -239,7 +239,7 @@ const Checkout = () => {
                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-cream-200 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>
                   <div className="flex-grow min-w-0">
                     <p className="font-bold text-warmDark-900 text-sm line-clamp-1">{item.name}</p>
-                    <p className="text-xs text-warmDark-500">{[item.size, item.finish].filter(Boolean).join(' · ')}</p>
+                    <p className="text-xs text-warmDark-500">{[item.size, item.finish || item.color || item.frame_color || item.mug_color, item.custom_text ? `"${item.custom_text}"` : null].filter(Boolean).join(' · ')}</p>
                     <p className="text-xs text-warmDark-500">Qty: {item.quantity}</p>
                   </div>
                   <span className="font-extrabold text-warmDark-900 text-sm">{formatINR(item.price * item.quantity)}</span>

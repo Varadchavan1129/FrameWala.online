@@ -4,7 +4,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CartContext } from '../../context/CartContext.jsx';
-import { FINISHES, SIZES } from '../../constants/productConstants.js';
+import { FRAME_COLORS, SIZES, resolveFrameColor } from '../../constants/productConstants.js';
 import { formatINR } from '../../utils/formatters.js';
 import { getProducts, uploadCustomizationImage } from '../../services/productService.js';
 import toast from 'react-hot-toast';
@@ -17,7 +17,7 @@ const CustomFrame = () => {
 
   const [samples, setSamples] = useState([]);
   const [framesForCustom, setFramesForCustom] = useState([]);
-  const [photo, setPhoto] = useState('/api/images/products/product_01.jpg');
+  const [photo, setPhoto] = useState('/images/products/product_01.jpg');
   const [frame, setFrame] = useState(null);
   const [finishIdx, setFinishIdx] = useState(0);
   const [sizeIdx, setSizeIdx] = useState(1);
@@ -26,7 +26,7 @@ const CustomFrame = () => {
 
   useEffect(() => {
     getProducts().then(res => {
-      const prods = res.data.products;
+      const prods = res?.data?.products || res?.products || [];
       const frames = prods.filter(p => p.is_customizable).slice(0, 6);
       setFramesForCustom(frames);
       if (frames.length > 0) setFrame(frames[0]);
@@ -37,10 +37,10 @@ const CustomFrame = () => {
       const weddingProd = prods.find(p => p.category_name === 'Wedding Frames');
 
       const dynamicSamples = [
-        { label: 'Family', url: familyProd?.primary_image || '/api/images/products/product_01.jpg' },
-        { label: 'Couple', url: coupleProd?.primary_image || '/api/images/products/product_08.jpg' },
-        { label: 'Baby', url: babyProd?.primary_image || '/api/images/products/product_05.jpg' },
-        { label: 'Wedding', url: weddingProd?.primary_image || '/api/images/products/product_09.jpg' },
+        { label: 'Family', url: familyProd?.primary_image || '/images/products/product_01.jpg' },
+        { label: 'Couple', url: coupleProd?.primary_image || '/images/products/product_08.jpg' },
+        { label: 'Baby', url: babyProd?.primary_image || '/images/products/product_05.jpg' },
+        { label: 'Wedding', url: weddingProd?.primary_image || '/images/products/product_09.jpg' },
       ];
       setSamples(dynamicSamples);
       if (dynamicSamples.length > 0) setPhoto(dynamicSamples[0].url);
@@ -49,7 +49,8 @@ const CustomFrame = () => {
     });
   }, []);
 
-  const activeFinishes = (frame && frame.finishes) ? frame.finishes : FINISHES;
+  const rawFinishes = (frame && frame.finishes && frame.finishes.length > 0) ? frame.finishes : FRAME_COLORS;
+  const activeFinishes = rawFinishes.map(f => resolveFrameColor(f));
   const activeSizes = (frame && frame.sizes) ? frame.sizes : SIZES;
 
   const finish = activeFinishes[finishIdx] || activeFinishes[0];
@@ -141,15 +142,35 @@ const CustomFrame = () => {
             </div>
           </div>
 
-          {/* Finish + size */}
+          {/* Finish & Color + size */}
           <div className="bg-white border border-warmDark-100/60 rounded-2xl p-5 space-y-4">
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded-full bg-brand-600 text-cream-50 text-xs font-bold flex items-center justify-center">3</span><h3 className="font-bold text-warmDark-900">Finish & Size</h3></div>
             <div>
-              <p className="text-xs font-semibold text-warmDark-600 mb-2">Finish: {finish.name}</p>
-              <div className="flex gap-3">
-                {activeFinishes.map((f, i) => (
-                  <button key={f.name} onClick={() => setFinishIdx(i)} title={f.name} className={`w-9 h-9 rounded-full border-2 transition-all ${finishIdx === i ? 'ring-2 ring-brand-600 ring-offset-2 border-white' : 'border-white shadow'}`} style={{ backgroundColor: f.hex || '#ccc' }} data-testid={`custom-finish-${i}`} />
-                ))}
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-bold text-warmDark-800">Frame Color: <span className="text-brand-700 font-extrabold">{finish?.name || 'Classic Black'}</span></p>
+              </div>
+              <div className="flex flex-wrap gap-3" data-testid="frame-color-swatches">
+                {activeFinishes.map((rawItem, i) => {
+                  const resolved = resolveFrameColor(rawItem);
+                  const isSelected = finishIdx === i;
+                  return (
+                    <button
+                      key={resolved.name + i}
+                      onClick={() => setFinishIdx(i)}
+                      title={resolved.name}
+                      aria-label={`Select frame color ${resolved.name}`}
+                      className={`relative w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${resolved.border} ${
+                        isSelected ? 'ring-2 ring-brand-600 ring-offset-2 scale-105' : 'hover:scale-105 opacity-90 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: resolved.hex }}
+                      data-testid={`custom-finish-${i}`}
+                    >
+                      {isSelected && (
+                        <FiCheck className={`w-4 h-4 ${resolved.hex === '#F5F5F7' || resolved.hex === '#FFFFFF' ? 'text-warmDark-900' : 'text-white'}`} />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
             <div>
@@ -166,8 +187,8 @@ const CustomFrame = () => {
         {/* Live preview */}
         <div className="lg:sticky lg:top-28 space-y-6">
           <div className="bg-gradient-to-br from-cream-200/70 to-cream-100 border border-warmDark-100/60 rounded-3xl p-8 flex flex-col items-center">
-            <div className="relative rounded-sm shadow-warm-lg" style={{ padding: '22px', backgroundColor: finish?.hex || '#ccc' }}>
-              <div className="bg-white p-4">
+            <div className="relative rounded-md shadow-2xl transition-all duration-300" style={{ padding: '24px', backgroundColor: finish?.hex || '#1E1E1E' }}>
+              <div className="bg-white p-4 shadow-inner">
                 <div className="relative w-64 sm:w-72 aspect-[4/5] overflow-hidden bg-cream-200">
                   {processing && (
                     <div className="absolute inset-0 z-20 bg-warmDark-900/40 backdrop-blur-sm flex flex-col items-center justify-center text-cream-50 gap-2">

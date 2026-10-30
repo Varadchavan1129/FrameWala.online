@@ -154,6 +154,9 @@ export const updateProduct = async (req, res, next) => {
 
 /**
  * DELETE /api/products/:id (Admin Only)
+ * Attempts a hard delete. If the product is referenced in order history
+ * (FK RESTRICT on order_items), falls back to a soft delete (is_active = 0)
+ * to preserve data integrity while hiding the product from the catalog.
  */
 export const deleteProduct = async (req, res, next) => {
   try {
@@ -164,12 +167,23 @@ export const deleteProduct = async (req, res, next) => {
       return res.status(404).json(sendError('Product not found.'));
     }
 
-    const deleted = await Product.delete(productId);
-    if (!deleted) {
-      return res.status(500).json(sendError('Failed to delete product. Check if it is referenced in active orders.'));
+    try {
+      const deleted = await Product.delete(productId);
+      if (!deleted) {
+        return res.status(500).json(sendError('Failed to delete product.'));
+      }
+      return res.status(200).json(sendSuccess('Product deleted successfully.'));
+    } catch (deleteError) {
+      // ER_ROW_IS_REFERENCED_2 (errno 1451): product exists in order_items — soft-delete instead
+      if (deleteError.errno === 1451) {
+        await Product.softDelete(productId);
+        return res.status(200).json(sendSuccess(
+          'Product deactivated. It cannot be fully deleted because it is referenced in existing orders.',
+          { soft_deleted: true }
+        ));
+      }
+      throw deleteError; // re-throw unexpected errors
     }
-
-    res.status(200).json(sendSuccess('Product deleted successfully.'));
   } catch (error) {
     next(error);
   }

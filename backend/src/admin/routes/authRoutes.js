@@ -6,6 +6,7 @@ import { register, login, getProfile, updateProfile, changePassword, forgotPassw
 import { getAddresses, createAddress, updateAddress, deleteAddress } from '../controllers/addressController.js';
 import { registerValidationRules, loginValidationRules } from '../../validations/authValidation.js';
 import { handleValidationErrors } from '../../middleware/validateMiddleware.js';
+import { adminAuth } from '../middleware/adminAuth.js';
 
 
 const router = express.Router();
@@ -15,15 +16,16 @@ router.post('/register', registerValidationRules, handleValidationErrors, regist
 router.post('/login', loginValidationRules, handleValidationErrors, login);
 router.post('/forgot-password', forgotPassword);
 
-// Protected profile routes (Requires JWT token)
-router.get('/profile', getProfile);
-router.put('/profile', updateProfile);
-router.put('/change-password', changePassword);
+// Protected profile routes (Requires valid admin JWT token)
+router.get('/profile', adminAuth, getProfile);
+router.put('/profile', adminAuth, updateProfile);
+router.put('/change-password', adminAuth, changePassword);
 
 // Protected address routes
-router.get('/addresses', getAddresses);
-router.post('/addresses', createAddress);
-router.put('/addresses/:id', updateAddress);
-router.delete('/addresses/:id', deleteAddress);
+router.get('/addresses', adminAuth, getAddresses);
+router.post('/addresses', adminAuth, createAddress);
+router.put('/addresses/:id', adminAuth, updateAddress);
+router.delete('/addresses/:id', adminAuth, deleteAddress);
 
 export default router;
+

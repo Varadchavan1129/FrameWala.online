@@ -39,7 +39,10 @@ const Cart = () => {
                 <Link to={`/product/${item.id}`} className="font-extrabold text-warmDark-900 text-sm hover:text-brand-600 line-clamp-1">{item.name}</Link>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-warmDark-500 mt-1">
                   {item.size && <span>Size: <span className="font-semibold text-warmDark-700">{item.size}</span></span>}
-                  {item.finish && <span>Finish: <span className="font-semibold text-warmDark-700">{item.finish}</span></span>}
+                  {(item.finish || item.color || item.frame_color || item.mug_color) && (
+                    <span>Color: <span className="font-semibold text-warmDark-700">{item.finish || item.color || item.frame_color || item.mug_color}</span></span>
+                  )}
+                  {item.custom_text && <span>Text: <span className="font-semibold font-italic text-brand-700">"{item.custom_text}"</span></span>}
                 </div>
                 <p className="text-warmDark-900 font-extrabold text-base mt-2">{formatINR(item.price)}</p>
               </div>

@@ -20,6 +20,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 // Admin-specific routes (isolated under /api/admin)
 import adminRoutes from './admin/routes/index.js';
 
+import db from './config/db.js';
 // Middleware imports
 import { notFoundHandler, globalErrorHandler } from './middleware/errorMiddleware.js';
 import { sendSuccess } from './utils/responseHelper.js';
@@ -28,7 +29,36 @@ const app = express();
 
 // Standard middlewares
 app.use(helmet({ crossOriginResourcePolicy: false }));
-app.use(cors()); // Allow all origins (Vite proxy is used in dev; restrict in production via env)
+
+// Dynamic CORS configuration allowing localhost, Vercel deployments, and production domain
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow non-browser requests (mobile apps, server-to-server, curl)
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin === 'https://framewala.online' ||
+      origin === 'https://www.framewala.online' ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('Blocked by CORS policy'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -45,12 +75,22 @@ app.get('/', (req, res) => {
   res.status(200).json({ message: 'FrameWala Backend Running' });
 });
 
-// Health check API
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
+// Health check API with database connectivity check
+app.get('/api/health', async (req, res) => {
+  let dbConnected = false;
+  try {
+    const [rows] = await db.query('SELECT 1 AS healthy');
+    dbConnected = Boolean(rows && rows[0]?.healthy === 1);
+  } catch (err) {
+    dbConnected = false;
+  }
+
+  const isHealthy = dbConnected;
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'OK' : 'DEGRADED',
     uptime: process.uptime(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: dbConnected ? 'connected' : 'disconnected'
   });
 });
 

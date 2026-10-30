@@ -50,7 +50,8 @@ router.post('/multiple', (req, res, next) => {
     const files = req.files || [];
     const urls = files.map((file) => {
       const PORT = process.env.PORT || 5000;
-      return `http://localhost:${PORT}/uploads/${file.filename}`;
+      const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+      return `${baseUrl}/uploads/${file.filename}`;
     });
     
     res.status(200).json(sendSuccess('Images uploaded successfully.', { urls }));
@@ -69,7 +70,8 @@ router.post('/customization', (req, res, next) => {
     }
     
     const PORT = process.env.PORT || 5000;
-    const url = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const url = `${baseUrl}/uploads/${req.file.filename}`;
     
     res.status(200).json(sendSuccess('Customization image uploaded successfully.', { url }));
   });

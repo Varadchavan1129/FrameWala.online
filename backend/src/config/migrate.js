@@ -71,7 +71,11 @@ export const runMigrations = async () => {
         if (rows[0].count === 0) {
           console.log('🔄 Categories table is empty. Seeding sample categories and products...');
           await db.query('SET FOREIGN_KEY_CHECKS = 0');
-          await executeSqlFile(path.join(databaseDirPath, '15_sample_data.sql'));
+          let samplePath = path.join(databaseDirPath, '15_sample_data.sql');
+          if (!fs.existsSync(samplePath)) {
+            samplePath = path.join(databaseDirPath, 'seeds', '15_sample_data.sql');
+          }
+          await executeSqlFile(samplePath);
           await db.query('SET FOREIGN_KEY_CHECKS = 1');
           console.log('✅ Sample data seeded successfully.');
         }
@@ -103,7 +107,13 @@ export const runMigrations = async () => {
       await db.query('SET FOREIGN_KEY_CHECKS = 0');
 
       for (const file of sqlFiles) {
-        const filePath = path.join(databaseDirPath, file);
+        let filePath = path.join(databaseDirPath, file);
+        if (!fs.existsSync(filePath)) {
+          filePath = path.join(databaseDirPath, 'schema', file);
+        }
+        if (!fs.existsSync(filePath)) {
+          filePath = path.join(databaseDirPath, 'seeds', file);
+        }
         if (!fs.existsSync(filePath)) {
           console.warn(`⚠️ Migration source missing: ${filePath}`);
           continue;

@@ -134,6 +134,18 @@ class Product {
   }
 
   /**
+   * Soft-delete: mark product as inactive instead of removing the row.
+   * Used when the product is referenced in historical orders (FK RESTRICT).
+   */
+  static async softDelete(id) {
+    const [result] = await db.query(
+      'UPDATE products SET is_active = 0 WHERE product_id = ?',
+      [id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  /**
    * Add image path to product_images
    */
   static async addImage(productId, imageUrl, displayOrder = 0, isPrimary = false) {
